@@ -5,13 +5,15 @@ import sys
 from pygame.locals import *
 import numpy as np
 #-------------------------------------------------------------------------------
+WND_TITLE = 'VexTris'
+FPS_RATE = 30
+# Dimensions
 FIELD_SIZE = np.array([320, 600])
 # Top, left, right, bottom
 MARGINS = np.array([10,10,120,40])
 WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
 FIELD_BORDER = np.concatenate((MARGINS[:2], FIELD_SIZE))
-WINCAPT = 'VexTris'
-FPS_RATE = 30
+# Colors
 WHITE = pygame.Color(255,255,255)
 BLACK = pygame.Color(0,0,0)
 #-------------------------------------------------------------------------------
@@ -21,7 +23,7 @@ class Game(object):
     """ Display and interact with the world
     """
     def __init__(self):
-        pygame.display.set_caption(WINCAPT)
+        pygame.display.set_caption(WND_TITLE)
         self.fps_clock = pygame.time.Clock()
         self.surface = pygame.display.set_mode(WND_SIZE)
         self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
