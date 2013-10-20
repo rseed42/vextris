@@ -57,7 +57,6 @@ class Game(object):
         pygame.display.set_caption(WINCAPT)
         self.fps_clock = pygame.time.Clock()
         self.surface = pygame.display.set_mode(WINSIZE)
-        self.mouse_pos = [0,0]
         self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
                                             italic=False)
         self.world = world
@@ -73,10 +72,6 @@ class Game(object):
                                            self.world_border,
                                            1
         )
-        msg_surface = self.fsb_font.render('Game Status', False, WHITE)
-        msg_rect = msg_surface.get_rect()
-        msg_rect.topleft = (50, WINSIZE[1] - 20)
-        self.surface.blit(msg_surface, msg_rect)
 
     def run(self):
         while True:
@@ -84,20 +79,6 @@ class Game(object):
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-                elif event.type == MOUSEMOTION:
-                    self.mouse_pos = event.pos - WORLD_OFFSET
-
-                elif event.type == MOUSEBUTTONUP:
-                    self.mouse_pos = event.pos - WORLD_OFFSET
-                    #left, middle, or right mouse click'
-                    #if event.button in (1, 2, 3):
-                    if event.button == 1:
-                        pass
-                    if event.button == 3:
-                        pass
-                    elif event.button in (4, 5):
-                        #msg = 'mouse scrolled up or down'
-                        pass
 
                 elif event.type == KEYDOWN:
                     if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
