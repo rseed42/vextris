@@ -9,6 +9,7 @@ WND_TITLE = 'VexTris'
 FPS_RATE = 30
 # Dimensions
 FIELD_SIZE = np.array([320, 600])
+FIELD_CENTER = 0.5*FIELD_SIZE
 # Top, left, right, bottom
 MARGINS = np.array([20,20,120,40])
 WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
@@ -21,10 +22,27 @@ WHITE = pygame.Color(255,255,255)
 BLACK = pygame.Color(0,0,0)
 RED = pygame.Color(255,0,0)
 GREEN = pygame.Color(0,255,0)
+DARK_GREEN = pygame.Color(20,80,20)
 BLUE = pygame.Color(0,0,255)
+# Math
+DEG60 = np.pi/3
+# Better be odd!
+HEX_NUM_HORIZ = 11
+# Maybe should make sure the result is an integer
+HALF_HEX_NUM = HEX_NUM_HORIZ/2
+SQRT3 = np.sqrt(3)
+HEIGHT_COEFF = 0.5*SQRT3
+RADIUS = 2.*(FIELD_SIZE[0]/(3.*HEX_NUM_HORIZ  + 1.))
+OFFSET = np.array([0.5*RADIUS, HEIGHT_COEFF*RADIUS])
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
+# Use a matrix
+def hex2pix(q,r):
+    x = RADIUS * 1.5 * q + 0.5*RADIUS
+    y = RADIUS * SQRT3 * (r + 0.5*q)
+    return np.array([x,y]) + OFFSET
+
 class Game(object):
     """ Display and interact with the world
     """
@@ -34,6 +52,11 @@ class Game(object):
         self.surface = pygame.display.set_mode(WND_SIZE)
         self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
                                             italic=False)
+        self.hexagon = np.zeros((6,2))
+        for i in xrange(6):
+            angle = i*DEG60
+            self.hexagon[i][0] = RADIUS * np.cos(angle)
+            self.hexagon[i][1] = RADIUS * np.sin(angle)
 
     def draw_world(self):
         """ Update visual objects
@@ -41,7 +64,17 @@ class Game(object):
         self.surface.fill(BLACK)
         self.field = self.surface.subsurface(FIELD)
 
+        for q in xrange(HEX_NUM_HORIZ):
+            for r in xrange(HEX_NUM_HORIZ):
+                self.h = pygame.draw.aalines(self.field,
+                                             DARK_GREEN,
+                                             True,
+                                             self.hexagon + hex2pix(q,r))
 
+        self.h = pygame.draw.aalines(self.field,
+                                     BLUE,
+                                     True,
+                                     self.hexagon + hex2pix(5,-2))
 
         self.world_rect = pygame.draw.rect(self.surface,
                                            FIELD_BORDER_COL,
