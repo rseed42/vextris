@@ -5,9 +5,9 @@ import sys
 from pygame.locals import *
 import numpy as np
 #-------------------------------------------------------------------------------
-FIELD_SIZE = np.array([400, 600])
+FIELD_SIZE = np.array([320, 600])
 # Top, left, right, bottom
-MARGINS = np.array([10,10,10,10])
+MARGINS = np.array([10,10,120,40])
 WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
 FIELD_BORDER = np.concatenate((MARGINS[:2], FIELD_SIZE))
 WINCAPT = 'VexTris'
