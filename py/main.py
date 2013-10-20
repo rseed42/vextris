@@ -27,13 +27,21 @@ BLUE = pygame.Color(0,0,255)
 # Math
 DEG60 = np.pi/3
 # Better be odd!
-HEX_NUM_HORIZ = 11
+HEX_NUM_HORIZ = 15
 # Maybe should make sure the result is an integer
 HALF_HEX_NUM = HEX_NUM_HORIZ/2
 SQRT3 = np.sqrt(3)
 HEIGHT_COEFF = 0.5*SQRT3
 RADIUS = 2.*(FIELD_SIZE[0]/(3.*HEX_NUM_HORIZ  + 1.))
-OFFSET = np.array([0.5*RADIUS, HEIGHT_COEFF*RADIUS])
+# Whole height
+HEIGHT = SQRT3*RADIUS
+# We also need to calculate how many fit in horizontally
+HEX_NUM_VERT = int(np.floor(FIELD_SIZE[1]/HEIGHT))
+# Offset vertically by the empty space due to imprecise number of hexagons
+OFFSET = np.array([0.5*RADIUS,
+                   HEIGHT_COEFF*RADIUS + FIELD_SIZE[1] - HEX_NUM_VERT*HEIGHT])
+print HEX_NUM_HORIZ, HEX_NUM_VERT
+HEXMAP = np.zeros((18, 11))
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
@@ -58,23 +66,28 @@ class Game(object):
             self.hexagon[i][0] = RADIUS * np.cos(angle)
             self.hexagon[i][1] = RADIUS * np.sin(angle)
 
+        print HEX_NUM_HORIZ/2
+
     def draw_world(self):
         """ Update visual objects
         """
         self.surface.fill(BLACK)
         self.field = self.surface.subsurface(FIELD)
 
+        s_min = -1
         for q in xrange(HEX_NUM_HORIZ):
-            for r in xrange(HEX_NUM_HORIZ):
+            for r in xrange(-HEX_NUM_HORIZ/2, HEX_NUM_VERT):
                 self.h = pygame.draw.aalines(self.field,
                                              DARK_GREEN,
                                              True,
                                              self.hexagon + hex2pix(q,r))
 
-        self.h = pygame.draw.aalines(self.field,
+        self.b = pygame.draw.aalines(self.field,
                                      BLUE,
                                      True,
-                                     self.hexagon + hex2pix(5,-2))
+                                     self.hexagon + \
+                                     hex2pix(0,
+                                             0))
 
         self.world_rect = pygame.draw.rect(self.surface,
                                            FIELD_BORDER_COL,
