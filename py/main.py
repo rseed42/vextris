@@ -10,12 +10,18 @@ FPS_RATE = 30
 # Dimensions
 FIELD_SIZE = np.array([320, 600])
 # Top, left, right, bottom
-MARGINS = np.array([10,10,120,40])
+MARGINS = np.array([20,20,120,40])
 WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
-FIELD_BORDER = np.concatenate((MARGINS[:2], FIELD_SIZE))
+FIELD = np.concatenate((MARGINS[:2], FIELD_SIZE))
+# Draw borders around the field so that figures inside are not affected
+FIELD_BORDER = FIELD.copy() + np.array([-1,-1,2,2])
+FIELD_BORDER_COL = pygame.Color(120, 120, 120)
 # Colors
 WHITE = pygame.Color(255,255,255)
 BLACK = pygame.Color(0,0,0)
+RED = pygame.Color(255,0,0)
+GREEN = pygame.Color(0,255,0)
+BLUE = pygame.Color(0,0,255)
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
@@ -33,11 +39,16 @@ class Game(object):
         """ Update visual objects
         """
         self.surface.fill(BLACK)
+        self.field = self.surface.subsurface(FIELD)
+
+
+
         self.world_rect = pygame.draw.rect(self.surface,
-                                           WHITE,
+                                           FIELD_BORDER_COL,
                                            FIELD_BORDER,
                                            1
         )
+
 
     def run(self):
         while True:
