@@ -6,11 +6,15 @@ from pygame.locals import *
 import numpy as np
 #-------------------------------------------------------------------------------
 DEBUG = True
-WINSIZE = (700, 700)
+FIELD_SIZE = np.array([400, 600])
+# Top, left, right, bottom
+MARGINS = np.array([10,10,10,10])
+WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
 WORLD_SIZE = np.array([660, 660])
 WORLD_CENTER = 0.5*WORLD_SIZE
 WORLD_OFFSET = np.array([20, 20])
 WORLD_BORDER_COL = pygame.Color(255,255,255)
+FIELD_BORDER = np.concatenate((MARGINS[:2], FIELD_SIZE))
 WINCAPT = 'VexTris'
 FPS_RATE = 30
 INT_STEP = 1./FPS_RATE
@@ -22,10 +26,6 @@ BLUE = pygame.Color(10,10,90)
 ORANGE = pygame.Color(157,31,6)
 GREEN = pygame.Color(10,90,10)
 GRAY = pygame.Color(16,16,16)
-
-#-------------------------------------------------------------------------------
-# World Objects
-#-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
 # WORLD Class: The central object in the simulation
@@ -56,12 +56,10 @@ class Game(object):
     def __init__(self, world):
         pygame.display.set_caption(WINCAPT)
         self.fps_clock = pygame.time.Clock()
-        self.surface = pygame.display.set_mode(WINSIZE)
+        self.surface = pygame.display.set_mode(WND_SIZE)
         self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
                                             italic=False)
         self.world = world
-        self.world_border = (WORLD_OFFSET[0]-1, WORLD_OFFSET[1]-1,
-                             WORLD_SIZE[0]+2, WORLD_SIZE[1]+2)
 
     def draw_world(self):
         """ Update visual objects
@@ -69,7 +67,7 @@ class Game(object):
         self.surface.fill(BGCOL)
         self.world_rect = pygame.draw.rect(self.surface,
                                            WORLD_BORDER_COL,
-                                           self.world_border,
+                                           FIELD_BORDER,
                                            1
         )
 
