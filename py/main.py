@@ -26,40 +26,18 @@ BLUE = pygame.Color(10,10,90)
 ORANGE = pygame.Color(157,31,6)
 GREEN = pygame.Color(10,90,10)
 GRAY = pygame.Color(16,16,16)
-
 #-------------------------------------------------------------------------------
-# WORLD Class: The central object in the simulation
-#-------------------------------------------------------------------------------
-class World(object):
-    def __init__(self, size, offset):
-        self.objects = []
-        self.pause = False
-
-    def populate(self):
-        """ Naive algorithm that has to be improved later.
-            Do not use with a great number of objects!
-        """
-        pass
-
-    def handle_object_collision(self, obj):
-        pass
-
-    def update(self):
-        pass
-
-#-------------------------------------------------------------------------------
-# GAME Class: The GUI that allows us a glimpse into the world
+# GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
 class Game(object):
     """ Display and interact with the world
     """
-    def __init__(self, world):
+    def __init__(self):
         pygame.display.set_caption(WINCAPT)
         self.fps_clock = pygame.time.Clock()
         self.surface = pygame.display.set_mode(WND_SIZE)
         self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
                                             italic=False)
-        self.world = world
 
     def draw_world(self):
         """ Update visual objects
@@ -91,8 +69,6 @@ class Game(object):
                     if event.key == K_ESCAPE:
                         pygame.event.post(pygame.event.Event(QUIT))
 
-            # Dynamics update
-            self.world.update()
             # Graphics update
             self.draw_world()
             pygame.display.update()
@@ -100,7 +76,5 @@ class Game(object):
 
 if __name__ == '__main__':
     pygame.init()
-    world = World(WORLD_SIZE, WORLD_OFFSET)
-    world.populate()
-    game = Game(world)
+    game = Game()
     game.run()
