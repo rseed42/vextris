@@ -5,27 +5,15 @@ import sys
 from pygame.locals import *
 import numpy as np
 #-------------------------------------------------------------------------------
-DEBUG = True
 FIELD_SIZE = np.array([400, 600])
 # Top, left, right, bottom
 MARGINS = np.array([10,10,10,10])
 WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
-WORLD_SIZE = np.array([660, 660])
-WORLD_CENTER = 0.5*WORLD_SIZE
-WORLD_OFFSET = np.array([20, 20])
-WORLD_BORDER_COL = pygame.Color(255,255,255)
 FIELD_BORDER = np.concatenate((MARGINS[:2], FIELD_SIZE))
 WINCAPT = 'VexTris'
 FPS_RATE = 30
-INT_STEP = 1./FPS_RATE
-BGCOL = pygame.Color(0,0,0)
 WHITE = pygame.Color(255,255,255)
 BLACK = pygame.Color(0,0,0)
-RED = pygame.Color(170,10,10)
-BLUE = pygame.Color(10,10,90)
-ORANGE = pygame.Color(157,31,6)
-GREEN = pygame.Color(10,90,10)
-GRAY = pygame.Color(16,16,16)
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
@@ -42,9 +30,9 @@ class Game(object):
     def draw_world(self):
         """ Update visual objects
         """
-        self.surface.fill(BGCOL)
+        self.surface.fill(BLACK)
         self.world_rect = pygame.draw.rect(self.surface,
-                                           WORLD_BORDER_COL,
+                                           WHITE,
                                            FIELD_BORDER,
                                            1
         )
