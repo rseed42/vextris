@@ -16,14 +16,15 @@ WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
 FIELD = np.concatenate((MARGINS[:2], FIELD_SIZE))
 # Draw borders around the field so that figures inside are not affected
 FIELD_BORDER = FIELD.copy() + np.array([-1,-1,2,2])
-FIELD_BORDER_COL = pygame.Color(64,64,64)
+FIELD_BORDER_COL = np.array([64,64,64], dtype=np.uint8)
 # Colors
-WHITE = pygame.Color(255,255,255)
-BLACK = pygame.Color(0,0,0)
-RED = pygame.Color(255,0,0)
-GREEN = pygame.Color(0,255,0)
-HEXGRID_COL = pygame.Color(48,48,48)
-BLUE = pygame.Color(0,0,255)
+WHITE = np.array([255,255,255], dtype=np.uint8)
+BLACK = np.zeros(3, dtype=np.uint8)
+RED = np.array([255, 0, 0], dtype=np.uint8)
+GREEN = np.array([0, 255, 0], dtype=np.uint8)
+HEXGRID_COL = np.array([48,48,48], dtype=np.uint8)
+BLUE = np.array([0, 0, 255], dtype=np.uint8)
+MAGENTA = np.array([128,0,128], dtype=np.uint8)
 # Math
 DEG60 = np.pi/3
 # Better be odd!
@@ -43,6 +44,41 @@ OFFSET = np.array([0.5*RADIUS,
 HEXMAP = np.zeros((HEX_NUM_VERT, HEX_NUM_HORIZ, 3))
 # The bottom
 HEXMAP[HEX_NUM_VERT-1,:,:] = (48,48,48)
+# Define shapes
+
+#CENTER = np.array([HEX_NUM_HORIZ/2, HEX_NUM_VERT/2], dtype=np.int64)
+CENTER = np.array([HEX_NUM_VERT/2, HEX_NUM_HORIZ/2], dtype=np.int64)
+# Remeber, coordinates are (v,h) due to hexmap structure
+SHAPES = np.array([
+    # 0 - Tetra
+    [[0,0],[-1,0],[0,1],[0,-1]],
+    # 1 - Rod
+    [[0,0],[-1,0],[1,0],[2,0]],
+    # 2 - Solid
+    [[0,0],[0,1],[0,-1],[1,0]],
+    # 3 - C
+    [[-1,0],[-1,-1],[0,-1],[1,0]],
+    # 4 - RL-Rod
+    [[0,0],[-1,0],[1,0],[1,1]],
+    # 5 - LL-Rod
+    [[0,0],[-1,0],[1,0],[1,-1]],
+    # 6 - R-Bent
+    [[0,0],[-1,0],[0,1],[1,1]],
+    # 7 - L-Bent
+    [[0,0],[-1,0],[0,-1],[1,-1]],
+    # 8 - R-T
+    [[0,0],[-1,0],[0,1],[1,0]],
+    # 9 - L-T
+    [[0,0],[-1,0],[0,-1],[1,0]],
+], dtype = np.int64)
+
+pos =  SHAPES[9] + CENTER
+print CENTER
+# Find a way to index array directly
+for p in pos:
+    HEXMAP[p[0], p[1]] = BLUE
+
+
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
