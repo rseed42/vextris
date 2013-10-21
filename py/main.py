@@ -20,11 +20,18 @@ FIELD_BORDER_COL = np.array([64,64,64], dtype=np.uint8)
 # Colors
 WHITE = np.array([255,255,255], dtype=np.uint8)
 BLACK = np.zeros(3, dtype=np.uint8)
-RED = np.array([255, 0, 0], dtype=np.uint8)
-GREEN = np.array([0, 255, 0], dtype=np.uint8)
+RED = np.array([196, 0, 0], dtype=np.uint8)
+GREEN = np.array([0, 196, 0], dtype=np.uint8)
 HEXGRID_COL = np.array([48,48,48], dtype=np.uint8)
-BLUE = np.array([0, 0, 255], dtype=np.uint8)
+BLUE = np.array([0, 0, 196], dtype=np.uint8)
 MAGENTA = np.array([128,0,128], dtype=np.uint8)
+ORANGE = np.array([255, 128, 0], dtype=np.uint8)
+VIOLETT = np.array([122, 32, 184], dtype=np.uint8)
+DARK_CYAN = np.array([0, 128, 128], dtype=np.uint8)
+CYAN = np.array([0, 196, 196], dtype=np.uint8)
+YELLOW = np.array([196, 196, 0], dtype=np.uint8)
+GREY = np.array([96, 96, 96], dtype=np.uint8)
+
 BGCOL = BLACK
 # Math
 DEG60 = np.pi/3
@@ -115,6 +122,7 @@ SHAPES.append( np.array([[[0,0],[-1,0],[0,-1],[1,0]],
                          [[0,0],[0,-1],[-1,1],[0,1]],
                          [[0,0],[-1,-1],[0,1],[1,0]],],
                dtype=np.int64))
+PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
 #-------------------------------------------------------------------------------
 
 # Use a matrix
@@ -126,11 +134,13 @@ def hex2pix(q,r):
 # Piece Class: Describes piece type, position, and orientation
 #-------------------------------------------------------------------------------
 class Piece(object):
-    def __init__(self, type_id, pos, color, rot_id=0):
+    def __init__(self, type_id, pos, rot_id=0, color=None):
         self.type_id = type_id
-        self.color = color
         self.pos = pos
         self.rot_id = rot_id
+        self.color = color
+        if not self.color:
+            self.color = PIECE_COLS[self.type_id]
 
     def hexagons(self):
         return SHAPES[self.type_id][self.rot_id].copy() + self.pos
@@ -161,7 +171,7 @@ class Game(object):
             self.hexagon[i][0] = RADIUS * np.cos(angle)
             self.hexagon[i][1] = RADIUS * np.sin(angle)
 
-        self.piece = Piece(9, CENTER, BLUE)
+        self.piece = Piece(8, CENTER)
         # Draw active piece
         # Find a way to index array directly
         for h in self.piece.hexagons():
