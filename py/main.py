@@ -40,10 +40,9 @@ HEX_NUM_VERT = int(np.floor(FIELD_SIZE[1]/HEIGHT))
 # Offset vertically by the empty space due to imprecise number of hexagons
 OFFSET = np.array([0.5*RADIUS,
                    HEIGHT_COEFF*RADIUS + FIELD_SIZE[1] - HEX_NUM_VERT*HEIGHT])
-print HEX_NUM_HORIZ, HEX_NUM_VERT
 HEXMAP = np.zeros((HEX_NUM_VERT, HEX_NUM_HORIZ, 3))
-#HEXMAP[0,0,:] = (16, 16, 128)
-HEXMAP[HEX_NUM_VERT-1,:,:] = (16, 16, 128)
+# The bottom
+HEXMAP[HEX_NUM_VERT-1,:,:] = (48,48,48)
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
