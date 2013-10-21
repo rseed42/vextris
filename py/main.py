@@ -16,18 +16,18 @@ WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
 FIELD = np.concatenate((MARGINS[:2], FIELD_SIZE))
 # Draw borders around the field so that figures inside are not affected
 FIELD_BORDER = FIELD.copy() + np.array([-1,-1,2,2])
-FIELD_BORDER_COL = pygame.Color(120, 120, 120)
+FIELD_BORDER_COL = pygame.Color(64,64,64)
 # Colors
 WHITE = pygame.Color(255,255,255)
 BLACK = pygame.Color(0,0,0)
 RED = pygame.Color(255,0,0)
 GREEN = pygame.Color(0,255,0)
-DARK_GREEN = pygame.Color(20,80,20)
+HEXGRID_COL = pygame.Color(48,48,48)
 BLUE = pygame.Color(0,0,255)
 # Math
 DEG60 = np.pi/3
 # Better be odd!
-HEX_NUM_HORIZ = 15
+HEX_NUM_HORIZ = 13
 # Maybe should make sure the result is an integer
 HALF_HEX_NUM = HEX_NUM_HORIZ/2
 SQRT3 = np.sqrt(3)
@@ -41,7 +41,9 @@ HEX_NUM_VERT = int(np.floor(FIELD_SIZE[1]/HEIGHT))
 OFFSET = np.array([0.5*RADIUS,
                    HEIGHT_COEFF*RADIUS + FIELD_SIZE[1] - HEX_NUM_VERT*HEIGHT])
 print HEX_NUM_HORIZ, HEX_NUM_VERT
-HEXMAP = np.zeros((18, 11))
+HEXMAP = np.zeros((HEX_NUM_VERT, HEX_NUM_HORIZ, 3))
+#HEXMAP[0,0,:] = (16, 16, 128)
+HEXMAP[HEX_NUM_VERT-1,:,:] = (16, 16, 128)
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
@@ -66,7 +68,6 @@ class Game(object):
             self.hexagon[i][0] = RADIUS * np.cos(angle)
             self.hexagon[i][1] = RADIUS * np.sin(angle)
 
-        print HEX_NUM_HORIZ/2
 
     def draw_world(self):
         """ Update visual objects
@@ -74,20 +75,23 @@ class Game(object):
         self.surface.fill(BLACK)
         self.field = self.surface.subsurface(FIELD)
 
-        s_min = -1
-        for q in xrange(HEX_NUM_HORIZ):
-            for r in xrange(-HEX_NUM_HORIZ/2, HEX_NUM_VERT):
-                self.h = pygame.draw.aalines(self.field,
-                                             DARK_GREEN,
-                                             True,
-                                             self.hexagon + hex2pix(q,r))
 
-        self.b = pygame.draw.aalines(self.field,
-                                     BLUE,
-                                     True,
-                                     self.hexagon + \
-                                     hex2pix(0,
-                                             0))
+        for r in xrange(-1, HEXMAP.shape[0]):
+            for q in xrange(HEXMAP.shape[1]):
+                # Coordinates for r must be corrected due to romboidal
+                # (non-perpendicular angle between the axes) shape.
+                s = r - q/2
+                if r >= 0:
+                    hexpoly = pygame.draw.polygon(self.field,
+                                                  HEXMAP[r, q],
+                                                  self.hexagon + hex2pix(q,s),
+                                                  0
+                    )
+                hexborder = pygame.draw.aalines(self.field,
+                                                HEXGRID_COL,
+                                                True,
+                                                self.hexagon + hex2pix(q,s))
+
 
         self.world_rect = pygame.draw.rect(self.surface,
                                            FIELD_BORDER_COL,
