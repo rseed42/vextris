@@ -54,6 +54,7 @@ HEXMAP = np.zeros((HEX_NUM_VERT, HEX_NUM_HORIZ, 3))
 HEXMAP[HEX_NUM_VERT-1,:,:] = (48,48,48)
 # Define shapes
 CENTER = np.array([HEX_NUM_VERT/2-1, HEX_NUM_HORIZ/2], dtype=np.int64)
+TOP = np.array([2, HEX_NUM_HORIZ/2], dtype=np.int64)
 # Remeber, coordinates are (v,h) due to hexmap structure
 SHAPES = []
 # 0 - Tetra
@@ -123,6 +124,7 @@ SHAPES.append( np.array([[[0,0],[-1,0],[0,-1],[1,0]],
                          [[0,0],[-1,-1],[0,1],[1,0]],],
                dtype=np.int64))
 PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
+SPEED = 0.05
 #-------------------------------------------------------------------------------
 
 # Use a matrix
@@ -137,6 +139,8 @@ class Piece(object):
     def __init__(self, type_id, pos, rot_id=0, color=None):
         self.type_id = type_id
         self.pos = pos
+        # Use height for slower fall
+        self.height = self.pos[0]
         self.rot_id = rot_id
         self.color = color
         if not self.color:
@@ -151,6 +155,9 @@ class Piece(object):
     def rotate_right(self):
         self.rot_id = (self.rot_id + 1) % len(SHAPES[self.type_id])
 
+    def fall(self, speed):
+        self.height += speed
+        self.pos[0] = int(np.floor(self.height))
 
 #-------------------------------------------------------------------------------
 # GAME Class: Handles logic and graphics
@@ -165,21 +172,42 @@ class Game(object):
         self.surface = pygame.display.set_mode(WND_SIZE)
         self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
                                             italic=False)
+        self.pause = False
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
             angle = i*DEG60
             self.hexagon[i][0] = RADIUS * np.cos(angle)
             self.hexagon[i][1] = RADIUS * np.sin(angle)
 
-        self.piece = Piece(8, CENTER)
+        self.piece = Piece(np.random.randint(10), TOP)
         # Draw active piece
         # Find a way to index array directly
         for h in self.piece.hexagons():
             HEXMAP[h[0], h[1]] = self.piece.color
+        # Speed
+        self.speed = SPEED
+
+    def update(self):
+        if self.piece == None:
+            return
+
+        # Erase piece first
+        for h in self.piece.hexagons():
+            HEXMAP[h[0], h[1]] = BGCOL
+        self.piece.fall(self.speed)
+        # Redraw
+        for h in self.piece.hexagons():
+            HEXMAP[h[0], h[1]] = self.piece.color
+
+        # Collision detection
+        for hex in self.piece.hexagons():
+            if hex[0] >= HEXMAP.shape[0] - 2:
+                self.piece = None
 
 
 
-    def draw_world(self):
+
+    def draw(self):
         """ Update visual objects
         """
         self.surface.fill(BGCOL)
@@ -201,14 +229,17 @@ class Game(object):
                                                 HEXGRID_COL,
                                                 True,
                                                 self.hexagon + hex2pix(q,s))
+#        if self.piece:
+#            for h in self.piece.hexagons():
+#                HEXMAP[h[0], h[1]] = BGCOL
+#            for h in self.piece.hexagons():
+#                HEXMAP[h[0], h[1]] = self.piece.color
 
 
-
-
-        self.world_rect = pygame.draw.rect(self.surface,
-                                           FIELD_BORDER_COL,
-                                           FIELD_BORDER,
-                                           1
+        self.field_border = pygame.draw.rect(self.surface,
+                                             FIELD_BORDER_COL,
+                                             FIELD_BORDER,
+                                             1
         )
 
 
@@ -221,6 +252,7 @@ class Game(object):
 
                 elif event.type == KEYDOWN:
                     if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
+                        if not self.piece: continue
                         # Erase piece first
                         for h in self.piece.hexagons():
                             HEXMAP[h[0], h[1]] = BGCOL
@@ -230,15 +262,20 @@ class Game(object):
                         elif event.key == K_DOWN:
                             self.piece.rotate_left()
                         elif event.key == K_LEFT:
-                            pass
+                            if self.piece.hexagons()[:,1].min() <= 0:
+                                continue
+                            self.piece.pos[1] -= 1
                         elif event.key == K_RIGHT:
-                            pass
+                            if self.piece.hexagons()[:,1].max() >= \
+                               HEXMAP.shape[1]-1:
+                                continue
+                            self.piece.pos[1] += 1
                         # Redraw
                         for h in self.piece.hexagons():
                             HEXMAP[h[0], h[1]] = self.piece.color
 
                     if event.key == K_p:
-                        self.world.pause = not self.world.pause
+                        self.pause = not self.pause
                     if event.key == K_s:
                         pass
                     if event.key == K_q:
@@ -247,8 +284,10 @@ class Game(object):
                     if event.key == K_ESCAPE:
                         pygame.event.post(pygame.event.Event(QUIT))
 
+            # Game update
+            self.update()
             # Graphics update
-            self.draw_world()
+            self.draw()
             pygame.display.update()
             self.fps_clock.tick(FPS_RATE)
 
