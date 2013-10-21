@@ -25,6 +25,7 @@ GREEN = np.array([0, 255, 0], dtype=np.uint8)
 HEXGRID_COL = np.array([48,48,48], dtype=np.uint8)
 BLUE = np.array([0, 0, 255], dtype=np.uint8)
 MAGENTA = np.array([128,0,128], dtype=np.uint8)
+BGCOL = BLACK
 # Math
 DEG60 = np.pi/3
 # Better be odd!
@@ -45,48 +46,105 @@ HEXMAP = np.zeros((HEX_NUM_VERT, HEX_NUM_HORIZ, 3))
 # The bottom
 HEXMAP[HEX_NUM_VERT-1,:,:] = (48,48,48)
 # Define shapes
-
-#CENTER = np.array([HEX_NUM_HORIZ/2, HEX_NUM_VERT/2], dtype=np.int64)
-CENTER = np.array([HEX_NUM_VERT/2, HEX_NUM_HORIZ/2], dtype=np.int64)
+CENTER = np.array([HEX_NUM_VERT/2-1, HEX_NUM_HORIZ/2], dtype=np.int64)
 # Remeber, coordinates are (v,h) due to hexmap structure
-SHAPES = np.array([
-    # 0 - Tetra
-    [[0,0],[-1,0],[0,1],[0,-1]],
-    # 1 - Rod
-    [[0,0],[-1,0],[1,0],[2,0]],
-    # 2 - Solid
-    [[0,0],[0,1],[0,-1],[1,0]],
-    # 3 - C
-    [[-1,0],[-1,-1],[0,-1],[1,0]],
-    # 4 - RL-Rod
-    [[0,0],[-1,0],[1,0],[1,1]],
-    # 5 - LL-Rod
-    [[0,0],[-1,0],[1,0],[1,-1]],
-    # 6 - R-Bent
-    [[0,0],[-1,0],[0,1],[1,1]],
-    # 7 - L-Bent
-    [[0,0],[-1,0],[0,-1],[1,-1]],
-    # 8 - R-T
-    [[0,0],[-1,0],[0,1],[1,0]],
-    # 9 - L-T
-    [[0,0],[-1,0],[0,-1],[1,0]],
-], dtype = np.int64)
-
-pos =  SHAPES[9] + CENTER
-print CENTER
-# Find a way to index array directly
-for p in pos:
-    HEXMAP[p[0], p[1]] = BLUE
-
-
+SHAPES = []
+# 0 - Tetra
+SHAPES.append( np.array([[[0,0],[-1,0],[0,1],[0,-1]],
+                         [[0,0],[-1,1],[1,0],[-1,-1]]],
+               dtype=np.int64))
+# 1 - Rod
+SHAPES.append( np.array([[[0,0],[-1,0],[1,0],[2,0]],
+                         [[0,0],[-1,1],[0,-1],[1,-2]],
+                         [[0,0],[-1,-1],[0,1],[1,2]]],
+               dtype=np.int64))
+# 2 - Solid
+SHAPES.append( np.array([[[0,0],[0,-1],[1,0],[0,1]],
+                         [[0,0],[-1,-1],[0,-1],[1,0]],
+                         [[0,0],[-1,0],[-1,-1],[0,-1]],
+                         [[0,0],[-1,1],[-1,0],[-1,-1]],
+                         [[0,0],[0,1],[-1,1],[-1,0]],],
+               dtype=np.int64))
+# 3 - C
+SHAPES.append( np.array([[[-1,0],[-1,-1],[0,-1],[1,0]],
+                         [[-1,1],[-1,0],[-1,-1],[0,-1]],
+                         [[0,1],[-1,1],[-1,0],[-1,-1]],
+                         [[1,0],[0,1],[-1,1],[-1,0]],
+                         [[0,-1],[1,0],[0,1],[-1,1]],
+                         [[-1,-1],[0,-1],[1,0],[0,1]],],
+               dtype=np.int64))
+# 4 - RL-Rod
+SHAPES.append( np.array([[[0,0],[-1,0],[1,0],[1,1]],
+                         [[0,0],[-1,1],[0,-1],[1,-1]],
+                         [[0,0],[0,1],[-1,-1],[0,-2]],
+                         [[0,0],[1,0],[-1,0],[-2,-1]],
+                         [[0,0],[0,-1],[-1,1],[-2,1]],
+                         [[0,0],[-1,-1],[0,1],[0,2]],],
+               dtype=np.int64))
+# 5 - LL-Rod
+SHAPES.append( np.array([[[0,0],[-1,0],[1,0],[1,-1]],
+                         [[0,0],[-1,1],[0,-1],[0,-2]],
+                         [[0,0],[0,1],[-1,-1],[-2,-1]],
+                         [[0,0],[1,0],[-1,0],[-2,1]],
+                         [[0,0],[0,-1],[-1,1],[0,2]],
+                         [[0,0],[-1,-1],[0,1],[1,1]],],
+               dtype=np.int64))
+# 6 - R-Bent
+SHAPES.append( np.array([[[0,0],[-1,0],[0,1],[1,1]],
+                         [[0,0],[-1,1],[1,0],[1,-1]],
+                         [[0,0],[0,1],[0,-1],[0,-2]],],
+               dtype=np.int64))
+# 7 - L-Bent
+SHAPES.append( np.array([[[0,0],[-1,0],[0,-1],[1,-1]],
+                         [[0,0],[-1,1],[-1,-1],[0,-2]],
+                         [[0,0],[0,1],[-1,0],[-2,-1]],],
+               dtype=np.int64))
+# 8 - R-T
+SHAPES.append( np.array([[[0,0],[-1,0],[0,1],[1,0]],
+                         [[0,0],[-1,1],[0,-1],[1,0]],
+                         [[0,0],[0,1],[-1,-1],[0,-1]],
+                         [[0,0],[1,0],[-1,0],[-1,-1]],
+                         [[0,0],[0,-1],[-1,1],[-1,0]],
+                         [[0,0],[-1,-1],[0,1],[-1,1]],],
+               dtype=np.int64))
+# 9 - R-T
+SHAPES.append( np.array([[[0,0],[-1,0],[0,-1],[1,0]],
+                         [[0,0],[-1,1],[-1,-1],[0,-1]],
+                         [[0,0],[0,1],[-1,0],[-1,-1]],
+                         [[0,0],[1,0],[-1,0],[-1,1]],
+                         [[0,0],[0,-1],[-1,1],[0,1]],
+                         [[0,0],[-1,-1],[0,1],[1,0]],],
+               dtype=np.int64))
 #-------------------------------------------------------------------------------
-# GAME Class: Handles logic and graphics
-#-------------------------------------------------------------------------------
+
 # Use a matrix
 def hex2pix(q,r):
     x = RADIUS * 1.5 * q + 0.5*RADIUS
     y = RADIUS * SQRT3 * (r + 0.5*q)
     return np.array([x,y]) + OFFSET
+#-------------------------------------------------------------------------------
+# Piece Class: Describes piece type, position, and orientation
+#-------------------------------------------------------------------------------
+class Piece(object):
+    def __init__(self, type_id, pos, color, rot_id=0):
+        self.type_id = type_id
+        self.color = color
+        self.pos = pos
+        self.rot_id = rot_id
+
+    def hexagons(self):
+        return SHAPES[self.type_id][self.rot_id].copy() + self.pos
+
+    def rotate_left(self):
+        self.rot_id = (self.rot_id - 1) % len(SHAPES[self.type_id])
+
+    def rotate_right(self):
+        self.rot_id = (self.rot_id + 1) % len(SHAPES[self.type_id])
+
+
+#-------------------------------------------------------------------------------
+# GAME Class: Handles logic and graphics
+#-------------------------------------------------------------------------------
 
 class Game(object):
     """ Display and interact with the world
@@ -103,11 +161,18 @@ class Game(object):
             self.hexagon[i][0] = RADIUS * np.cos(angle)
             self.hexagon[i][1] = RADIUS * np.sin(angle)
 
+        self.piece = Piece(9, CENTER, BLUE)
+        # Draw active piece
+        # Find a way to index array directly
+        for h in self.piece.hexagons():
+            HEXMAP[h[0], h[1]] = self.piece.color
+
+
 
     def draw_world(self):
         """ Update visual objects
         """
-        self.surface.fill(BLACK)
+        self.surface.fill(BGCOL)
         self.field = self.surface.subsurface(FIELD)
 
 
@@ -128,6 +193,8 @@ class Game(object):
                                                 self.hexagon + hex2pix(q,s))
 
 
+
+
         self.world_rect = pygame.draw.rect(self.surface,
                                            FIELD_BORDER_COL,
                                            FIELD_BORDER,
@@ -144,7 +211,22 @@ class Game(object):
 
                 elif event.type == KEYDOWN:
                     if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
-                        pass
+                        # Erase piece first
+                        for h in self.piece.hexagons():
+                            HEXMAP[h[0], h[1]] = BGCOL
+
+                        if event.key == K_UP:
+                            self.piece.rotate_right()
+                        elif event.key == K_DOWN:
+                            self.piece.rotate_left()
+                        elif event.key == K_LEFT:
+                            pass
+                        elif event.key == K_RIGHT:
+                            pass
+                        # Redraw
+                        for h in self.piece.hexagons():
+                            HEXMAP[h[0], h[1]] = self.piece.color
+
                     if event.key == K_p:
                         self.world.pause = not self.world.pause
                     if event.key == K_s:
