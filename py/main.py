@@ -142,9 +142,22 @@ SPEED = 0.05
 
 # Use a matrix
 def hex2pix(q,r, radius, offset):
-    x = radius * 1.5 * q + 0.5*radius
-    y = radius * SQRT3 * (r + 0.5*q)
+    """ Hexagons are in an even-q vertical layout
+    """
+#    x = radius * 1.5 * q + 0.5*radius
+#    y = radius * SQRT3 * (r + 0.5*q)
+#    return np.array([x,y]) + offset
+
+    x = radius * 1.5 * q
+    y = radius * SQRT3 * (r - 0.5*(q&1))
+#    return np.array([x,y]) + offset
     return np.array([x,y]) + offset
+
+
+#    x = radius * 1.5 * r
+#    y = radius * SQRT3 * (q + 0.5*r)
+#    return np.array([x,y])
+
 
 #-------------------------------------------------------------------------------
 # Piece Class: Describes piece type, position, and orientation
@@ -213,8 +226,13 @@ class GLWidget(QtOpenGL.QGLWidget):
         # for coordinate conversion in a more natural way
         self.colmap = np.zeros((self.hex_num, self.hex_num_vert, 3))
 
-        self.colmap[:,0] = (0,0,0.3)
+        self.colmap[:,0] = (0,0,0.6)
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
+
+
+        self.hexlist = np.array([[0,-1],[+1,0]])
+        self.hexpos = np.array([4,8])
+
 
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
@@ -230,15 +248,18 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glTranslatef(0.0, 0.0, -1)
 
         # Draw the hexagons
-        for q in xrange(self.hex_num):
-            for r in xrange(self.hex_num_vert):
+        for i in xrange(self.hex_num):
+            for j in xrange(self.hex_num_vert):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-                s = r - q/2
-                pos = hex2pix(q,s, self.hex_radius, self.offset)
+#                s = r - q/2
+#                pos = hex2pix(q,s, self.hex_radius, self.offset)
+                pos = hex2pix(i,j, self.hex_radius, self.offset)
                 GL.glBegin(GL.GL_TRIANGLE_FAN)
-                col = self.colmap[q, r]
-                GL.glColor3f(*self.colmap[q,r])
+#                col = self.colmap[q, r]
+                col = self.colmap[i, j]
+#                GL.glColor3f(*self.colmap[q,r])
+                GL.glColor3f(*self.colmap[i,j])
                 hex = self.hexagon + pos
                 for v in hex:
                     GL.glVertex3f(v[0],v[1],0)
@@ -248,12 +269,16 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         # Draw the hexagon grid
         GL.glColor3f(0.2,0.2,0.2)
-        for q in xrange(self.hex_num):
-            for r in xrange(self.hex_num_vert):
+#        for q in xrange(self.hex_num):
+#            for r in xrange(self.hex_num_vert):
+        for i in xrange(self.hex_num):
+            for j in xrange(self.hex_num_vert):
+
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-                s = r - q/2
-                pos = hex2pix(q,s, self.hex_radius, self.offset)
+#                s = r - q/2
+#                pos = hex2pix(q,s, self.hex_radius, self.offset)
+                pos = hex2pix(i,j, self.hex_radius, self.offset)
                 GL.glBegin(GL.GL_LINE_STRIP)
                 hex = self.hexagon + pos
                 for v in hex:
@@ -261,6 +286,36 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
+
+        GL.glColor3f(0.8,0.8,0.2)
+        i,j = self.hexpos
+        GL.glBegin(GL.GL_TRIANGLE_FAN)
+        hex = self.hexagon + hex2pix(i,j, self.hex_radius, self.offset)
+        for v in hex:
+            GL.glVertex3f(v[0],v[1],0)
+        v = hex[0]
+        GL.glVertex3f(v[0], v[1], 0)
+        GL.glEnd()
+
+        GL.glColor3f(0.7,0,0)
+        # Draw the hexagons
+        for relpos in self.hexlist:
+                q,r = self.hexpos + relpos
+                # Convert even-q offset to cube
+#                pos = hex2pix(i,j, self.hex_radius, self.offset)
+                GL.glBegin(GL.GL_TRIANGLE_FAN)
+
+                hex = self.hexagon + pos
+
+
+                for v in hex:
+                    GL.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                GL.glVertex3f(v[0], v[1], 0)
+                GL.glEnd()
+
+
+
 
     def resizeGL(self, width, height):
         side = min(width, height)
@@ -288,13 +343,18 @@ class GLWidget(QtOpenGL.QGLWidget):
     def keyPressEvent(self, event):
         key = event.key()
         if key == QtCore.Qt.Key_Left:
-            print 'left'
+            self.hexpos[0] -= 1
+            print self.hexpos
+            self.repaint()
         elif key == QtCore.Qt.Key_Right:
-            pass
+            self.hexpos[0] += 1
+            print self.hexpos
+            self.repaint()
         elif key == QtCore.Qt.Key_Down:
             pass
         elif key == QtCore.Qt.Key_Up:
             pass
+
         elif key == QtCore.Qt.Key_Space:
             pass
         elif key == QtCore.Qt.Key_Q:
