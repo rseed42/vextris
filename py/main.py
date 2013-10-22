@@ -2,7 +2,15 @@
 #-------------------------------------------------------------------------------
 #import pygame
 import sys
-#from pygame.locals import *
+from PyQt4 import QtCore, QtGui, QtOpenGL
+try:
+    from OpenGL import GL
+except ImportError:
+    app = QtGui.QApplication(sys.argv)
+    QtGui.QMessageBox.critical(None, "OpenGL 2dpainting",
+            "PyOpenGL must be installed to run this example.")
+    sys.exit(1)
+
 import numpy as np
 #-------------------------------------------------------------------------------
 WND_TITLE = 'VexTris'
@@ -290,9 +298,79 @@ class Piece(object):
 #            self.draw()
 #            pygame.display.update()
 #            self.fps_clock.tick(FPS_RATE)
+#-------------------------------------------------------------------------------
+# Game?
+#-------------------------------------------------------------------------------
 
+#-------------------------------------------------------------------------------
+# GL Widget
+#-------------------------------------------------------------------------------
+class GLWidget(QtOpenGL.QGLWidget):
+    def __init__(self, parent=None):
+        super(GLWidget, self).__init__(parent)
+        self.trolltechGreen = QtGui.QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
+        self.trolltechPurple = QtGui.QColor.fromCmykF(0.39, 0.39, 0.0, 0.0)
+        self.lastPos = QtCore.QPoint()
+
+    def minimumSizeHint(self):
+        return QtCore.QSize(50, 50)
+
+    def sizeHint(self):
+        return QtCore.QSize(400, 400)
+
+    def initializeGL(self):
+        self.qglClearColor(self.trolltechPurple.dark())
+#        self.object = self.makeObject()
+        GL.glShadeModel(GL.GL_FLAT)
+        GL.glEnable(GL.GL_DEPTH_TEST)
+        GL.glEnable(GL.GL_CULL_FACE)
+
+    def paintGL(self):
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        GL.glLoadIdentity()
+        GL.glTranslated(0.0, 0.0, -10.0)
+#        GL.glCallList(self.object)
+
+    def resizeGL(self, width, height):
+        side = min(width, height)
+        if side < 0:
+            return
+
+        GL.glViewport((width - side) / 2, (height - side) / 2, side, side)
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+        GL.glOrtho(-0.5, +0.5, +0.5, -0.5, 4.0, 15.0)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+
+    def mousePressEvent(self, event):
+        self.lastPos = event.pos()
+
+    def mouseMoveEvent(self, event):
+#        dx = event.x() - self.lastPos.x()
+#        dy = event.y() - self.lastPos.y()
+        if event.buttons() & QtCore.Qt.LeftButton:
+            pass
+        elif event.buttons() & QtCore.Qt.RightButton:
+            pass
+        self.lastPos = event.pos()
+
+#-------------------------------------------------------------------------------
+# Window
+#-------------------------------------------------------------------------------
+class Window(QtGui.QWidget):
+    def __init__(self):
+        super(Window, self).__init__()
+        self.glWidget = GLWidget()
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.glWidget)
+        self.setLayout(layout)
+        self.setWindowTitle("PyQt4 OpenGL Template")
+
+#-------------------------------------------------------------------------------
+# Main
+#-------------------------------------------------------------------------------
 if __name__ == '__main__':
-#    pygame.init()
-#    game = Game()
-#    game.run()
-    pass
+    app = QtGui.QApplication(sys.argv)
+    window = Window()
+    window.show()
+    sys.exit(app.exec_())
