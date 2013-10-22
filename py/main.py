@@ -42,7 +42,7 @@ VIOLETT = np.array([122, 32, 184], dtype=np.uint8)
 DARK_CYAN = np.array([0, 128, 128], dtype=np.uint8)
 CYAN = np.array([0, 196, 196], dtype=np.uint8)
 YELLOW = np.array([196, 196, 0], dtype=np.uint8)
-GREY = np.array([96, 96, 96], dtype=np.uint8)
+GREY = np.array([0.5, 0.5, 0.5])
 
 BGCOL = BLACK
 # Math
@@ -65,76 +65,74 @@ HEXMAP = np.zeros((HEX_NUM_VERT, HEX_NUM_HORIZ, 3))
 # The bottom
 HEXMAP[HEX_NUM_VERT-1,:,:] = (48,48,48)
 # Define shapes
-CENTER = np.array([HEX_NUM_VERT/2-1, HEX_NUM_HORIZ/2], dtype=np.int64)
+#CENTER = np.array([HEX_NUM_VERT/2-1, HEX_NUM_HORIZ/2], dtype=np.int64)
+#CENTER = np.array([HEX_NUM_HORIZ/2-1, HEX_NUM_HORIZ/2], dtype=np.int64)
 TOP = np.array([2, HEX_NUM_HORIZ/2], dtype=np.int64)
 # Remeber, coordinates are (v,h) due to hexmap structure
+
+
+
+# Shapes are defined as the first and second order neighbors of
+# the pos variable in a piece. Due to position-dependent distance
+# on the hex grid, we need to calculate their relative position
+# when the center of the piece changes its location.
+# The neighbors are enumerated from 0 (top neighbor) to 5 on the
+# inner circle and 6 (second top neighbor) to 17 on the second one.
+# The locations depending on odd/even location of the center are
+# defined in an array for the odd and even situation.
+
+NLOC = np.array([[
+# even
+[0,0],[0,1],[1,1],[1,0],[0,-1],[-1,0],[-1,1],
+[0,2],[1,2],[2,1],[2,0],[2, -1],[1,-1],
+    [0,-2],[-1,-1],[-2,-1],[-2,0],[-2, 1],[-1,2]
+],
+# odd
+[
+[0,0],[0,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],
+[0,2],[1,1],[2,1],[2,0],[2,-1],[1,-2],
+    [0,-2],[-1,-2],[-2,-1],[-2,0],[-2,1],[-1,1]
+]
+], dtype=np.int64)
+
+
+
 SHAPES = []
 # 0 - Tetra
-SHAPES.append( np.array([[[0,0],[-1,0],[0,1],[0,-1]],
-                         [[0,0],[-1,1],[1,0],[-1,-1]]],
-               dtype=np.int64))
+SHAPES.append(np.array([[0,1,3,5],[0,2,4,6]],dtype=np.int64))
 # 1 - Rod
-SHAPES.append( np.array([[[0,0],[-1,0],[1,0],[2,0]],
-                         [[0,0],[-1,1],[0,-1],[1,-2]],
-                         [[0,0],[-1,-1],[0,1],[1,2]]],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,1,4,13]
+],dtype=np.int64))
 # 2 - Solid
-SHAPES.append( np.array([[[0,0],[0,-1],[1,0],[0,1]],
-                         [[0,0],[-1,-1],[0,-1],[1,0]],
-                         [[0,0],[-1,0],[-1,-1],[0,-1]],
-                         [[0,0],[-1,1],[-1,0],[-1,-1]],
-                         [[0,0],[0,1],[-1,1],[-1,0]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,3,4,5]
+],dtype=np.int64))
 # 3 - C
-SHAPES.append( np.array([[[-1,0],[-1,-1],[0,-1],[1,0]],
-                         [[-1,1],[-1,0],[-1,-1],[0,-1]],
-                         [[0,1],[-1,1],[-1,0],[-1,-1]],
-                         [[1,0],[0,1],[-1,1],[-1,0]],
-                         [[0,-1],[1,0],[0,1],[-1,1]],
-                         [[-1,-1],[0,-1],[1,0],[0,1]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[1,4,5,6],
+                         [2,5,6,1],
+                         [3,6,1,2],
+                         [4,1,2,3],
+                         [5,2,3,4],
+                         [6,3,4,5],
+],dtype=np.int64))
 # 4 - RL-Rod
-SHAPES.append( np.array([[[0,0],[-1,0],[1,0],[1,1]],
-                         [[0,0],[-1,1],[0,-1],[1,-1]],
-                         [[0,0],[0,1],[-1,-1],[0,-2]],
-                         [[0,0],[1,0],[-1,0],[-2,-1]],
-                         [[0,0],[0,-1],[-1,1],[-2,1]],
-                         [[0,0],[-1,-1],[0,1],[0,2]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,1,4,12],
+],dtype=np.int64))
 # 5 - LL-Rod
-SHAPES.append( np.array([[[0,0],[-1,0],[1,0],[1,-1]],
-                         [[0,0],[-1,1],[0,-1],[0,-2]],
-                         [[0,0],[0,1],[-1,-1],[-2,-1]],
-                         [[0,0],[1,0],[-1,0],[-2,1]],
-                         [[0,0],[0,-1],[-1,1],[0,2]],
-                         [[0,0],[-1,-1],[0,1],[1,1]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,1,4,14],
+],dtype=np.int64))
 # 6 - R-Bent
-SHAPES.append( np.array([[[0,0],[-1,0],[0,1],[1,1]],
-                         [[0,0],[-1,1],[1,0],[1,-1]],
-                         [[0,0],[0,1],[0,-1],[0,-2]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,1,3,12],
+],dtype=np.int64))
 # 7 - L-Bent
-SHAPES.append( np.array([[[0,0],[-1,0],[0,-1],[1,-1]],
-                         [[0,0],[-1,1],[-1,-1],[0,-2]],
-                         [[0,0],[0,1],[-1,0],[-2,-1]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,1,5,14],
+],dtype=np.int64))
 # 8 - R-T
-SHAPES.append( np.array([[[0,0],[-1,0],[0,1],[1,0]],
-                         [[0,0],[-1,1],[0,-1],[1,0]],
-                         [[0,0],[0,1],[-1,-1],[0,-1]],
-                         [[0,0],[1,0],[-1,0],[-1,-1]],
-                         [[0,0],[0,-1],[-1,1],[-1,0]],
-                         [[0,0],[-1,-1],[0,1],[-1,1]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,1,3,4],
+],dtype=np.int64))
 # 9 - R-T
-SHAPES.append( np.array([[[0,0],[-1,0],[0,-1],[1,0]],
-                         [[0,0],[-1,1],[-1,-1],[0,-1]],
-                         [[0,0],[0,1],[-1,0],[-1,-1]],
-                         [[0,0],[1,0],[-1,0],[-1,1]],
-                         [[0,0],[0,-1],[-1,1],[0,1]],
-                         [[0,0],[-1,-1],[0,1],[1,0]],],
-               dtype=np.int64))
+SHAPES.append( np.array([[0,1,4,5],
+],dtype=np.int64))
+
 PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
 SPEED = 0.05
 
@@ -144,20 +142,9 @@ SPEED = 0.05
 def hex2pix(q,r, radius, offset):
     """ Hexagons are in an even-q vertical layout
     """
-#    x = radius * 1.5 * q + 0.5*radius
-#    y = radius * SQRT3 * (r + 0.5*q)
-#    return np.array([x,y]) + offset
-
     x = radius * 1.5 * q
     y = radius * SQRT3 * (r - 0.5*(q&1))
-#    return np.array([x,y]) + offset
     return np.array([x,y]) + offset
-
-
-#    x = radius * 1.5 * r
-#    y = radius * SQRT3 * (q + 0.5*r)
-#    return np.array([x,y])
-
 
 #-------------------------------------------------------------------------------
 # Piece Class: Describes piece type, position, and orientation
@@ -174,7 +161,8 @@ class Piece(object):
             self.color = PIECE_COLS[self.type_id]
 
     def hexagons(self):
-        return SHAPES[self.type_id][self.rot_id].copy() + self.pos
+        neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][self.rot_id]]
+        return neighbors + self.pos
 
     def rotate_left(self):
         self.rot_id = (self.rot_id - 1) % len(SHAPES[self.type_id])
@@ -216,6 +204,8 @@ class GLWidget(QtOpenGL.QGLWidget):
                                 GOLDEN_RATIO - \
                                 self.hex_num_vert*self.hex_height])
 
+        self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
+                               dtype=np.int64)
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
             angle = i*DEG60
@@ -230,8 +220,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
 
 
-        self.hexlist = np.array([[0,-1],[+1,0]])
+        self.hexlist = np.array([[1,-1],])
         self.hexpos = np.array([4,8])
+
+        # Piece
+        self.piece = Piece(9, self.center)
+        self.update_game()
 
 
     def initializeGL(self):
@@ -252,13 +246,9 @@ class GLWidget(QtOpenGL.QGLWidget):
             for j in xrange(self.hex_num_vert):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-#                s = r - q/2
-#                pos = hex2pix(q,s, self.hex_radius, self.offset)
                 pos = hex2pix(i,j, self.hex_radius, self.offset)
                 GL.glBegin(GL.GL_TRIANGLE_FAN)
-#                col = self.colmap[q, r]
                 col = self.colmap[i, j]
-#                GL.glColor3f(*self.colmap[q,r])
                 GL.glColor3f(*self.colmap[i,j])
                 hex = self.hexagon + pos
                 for v in hex:
@@ -269,15 +259,10 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         # Draw the hexagon grid
         GL.glColor3f(0.2,0.2,0.2)
-#        for q in xrange(self.hex_num):
-#            for r in xrange(self.hex_num_vert):
         for i in xrange(self.hex_num):
             for j in xrange(self.hex_num_vert):
-
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-#                s = r - q/2
-#                pos = hex2pix(q,s, self.hex_radius, self.offset)
                 pos = hex2pix(i,j, self.hex_radius, self.offset)
                 GL.glBegin(GL.GL_LINE_STRIP)
                 hex = self.hexagon + pos
@@ -287,34 +272,41 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
 
-        GL.glColor3f(0.8,0.8,0.2)
-        i,j = self.hexpos
-        GL.glBegin(GL.GL_TRIANGLE_FAN)
-        hex = self.hexagon + hex2pix(i,j, self.hex_radius, self.offset)
-        for v in hex:
-            GL.glVertex3f(v[0],v[1],0)
-        v = hex[0]
-        GL.glVertex3f(v[0], v[1], 0)
-        GL.glEnd()
+#        # Draw center of piece first (also for debugging)
+#        GL.glColor3f(0.8,0.8,0.2)
+#        i,j = self.piece.pos
+#        GL.glBegin(GL.GL_TRIANGLE_FAN)
+#        hex = self.hexagon + hex2pix(i,j, self.hex_radius, self.offset)
+#        for v in hex:
+#            GL.glVertex3f(v[0],v[1],0)
+#        v = hex[0]
+#        GL.glVertex3f(v[0], v[1], 0)
+#        GL.glEnd()
 
-        GL.glColor3f(0.7,0,0)
-        # Draw the hexagons
-        for relpos in self.hexlist:
-                q,r = self.hexpos + relpos
-                # Convert even-q offset to cube
+#        GL.glColor3f(0.7,0,0)
+#        # Draw the hexagons
+#        for relpos in self.hexlist:
+#                q,r = self.hexpos + relpos
+#                # Convert even-q offset to cube
 #                pos = hex2pix(i,j, self.hex_radius, self.offset)
-                GL.glBegin(GL.GL_TRIANGLE_FAN)
-
-                hex = self.hexagon + pos
-
-
-                for v in hex:
-                    GL.glVertex3f(v[0],v[1],0)
-                v = hex[0]
-                GL.glVertex3f(v[0], v[1], 0)
-                GL.glEnd()
+#                GL.glBegin(GL.GL_TRIANGLE_FAN)
+#                hex = self.hexagon + pos
+#                for v in hex:
+#                    GL.glVertex3f(v[0],v[1],0)
+#                v = hex[0]
+#                GL.glVertex3f(v[0], v[1], 0)
+#                GL.glEnd()
 
 
+    def update_game(self):
+        for h in self.piece.hexagons():
+            self.colmap[h[0],h[1]] = self.piece.color
+#        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0.8,0.8,0.8)
+
+    def erase_piece(self):
+        for h in self.piece.hexagons():
+            self.colmap[h[0],h[1]] = (0,0,0)
+#        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0,0,0)
 
 
     def resizeGL(self, width, height):
@@ -341,24 +333,39 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.lastPos = event.pos()
 
     def keyPressEvent(self, event):
+        self.erase_piece()
         key = event.key()
         if key == QtCore.Qt.Key_Left:
-            self.hexpos[0] -= 1
-            print self.hexpos
-            self.repaint()
+            if self.piece.hexagons()[:,0].min() > 0:
+                self.piece.pos[0] -= 1
+
         elif key == QtCore.Qt.Key_Right:
-            self.hexpos[0] += 1
-            print self.hexpos
-            self.repaint()
+            if self.piece.hexagons()[:,0].max() < self.hex_num-1:
+                self.piece.pos[0] += 1
+
         elif key == QtCore.Qt.Key_Down:
-            pass
+            if self.piece.hexagons()[:,1].min() > 1:
+                self.piece.pos[1] -= 1
+
         elif key == QtCore.Qt.Key_Up:
-            pass
+            if self.piece.hexagons()[:,1].max() < self.hex_num_vert-1:
+                self.piece.pos[1] += 1
+
+        elif key == QtCore.Qt.Key_R:
+            self.piece.rotate_right()
+
+        elif key == QtCore.Qt.Key_L:
+            self.piece.rotate_left()
+
+
 
         elif key == QtCore.Qt.Key_Space:
             pass
         elif key == QtCore.Qt.Key_Q:
             QtGui.qApp.quit()
+
+        self.update_game()
+        self.repaint()
 
 #-------------------------------------------------------------------------------
 # Window
