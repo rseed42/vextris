@@ -14,13 +14,16 @@ except ImportError:
 import numpy as np
 #-------------------------------------------------------------------------------
 WND_TITLE = 'VexTris'
+GOLDEN_RATIO = 0.5*(1+np.sqrt(5))
 FPS_RATE = 30
 # Dimensions
-FIELD_SIZE = np.array([320, 600])
+FIELD_WIDTH = 320
+FIELD_HEIGHT = FIELD_WIDTH*GOLDEN_RATIO
+FIELD_SIZE = np.array([FIELD_WIDTH, FIELD_HEIGHT])
 FIELD_CENTER = 0.5*FIELD_SIZE
 # Top, left, right, bottom
 MARGINS = np.array([20,20,120,40])
-WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
+#WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
 FIELD = np.concatenate((MARGINS[:2], FIELD_SIZE))
 # Draw borders around the field so that figures inside are not affected
 FIELD_BORDER = FIELD.copy() + np.array([-1,-1,2,2])
@@ -133,6 +136,7 @@ SHAPES.append( np.array([[[0,0],[-1,0],[0,-1],[1,0]],
                dtype=np.int64))
 PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
 SPEED = 0.05
+
 #-------------------------------------------------------------------------------
 
 # Use a matrix
@@ -308,46 +312,55 @@ class Piece(object):
 class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
-        self.trolltechGreen = QtGui.QColor.fromCmykF(0.40, 0.0, 1.0, 0.0)
-        self.trolltechPurple = QtGui.QColor.fromCmykF(0.39, 0.39, 0.0, 0.0)
         self.lastPos = QtCore.QPoint()
 
-    def minimumSizeHint(self):
-        return QtCore.QSize(50, 50)
-
     def sizeHint(self):
-        return QtCore.QSize(400, 400)
+        return QtCore.QSize(*FIELD_SIZE)
 
     def initializeGL(self):
-        self.qglClearColor(self.trolltechPurple.dark())
-#        self.object = self.makeObject()
-        GL.glShadeModel(GL.GL_FLAT)
+        GL.glShadeModel(GL.GL_SMOOTH)
+        GL.glClearColor(0.0,0.0,0.0,0.0)
+        GL.glClearDepth(1.0)
         GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glEnable(GL.GL_CULL_FACE)
+        GL.glDepthFunc(GL.GL_LEQUAL)
+        GL.glHint(GL.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST)
+
 
     def paintGL(self):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         GL.glLoadIdentity()
-        GL.glTranslated(0.0, 0.0, -10.0)
-#        GL.glCallList(self.object)
+        GL.glTranslatef(0.0, 0.0, -1)
+
+        # Paint the coordinate system x,y,z : r, g, b first
+        GL.glBegin(GL.GL_LINES)
+        # x axis
+        GL.glColor3f(0.2, 0.2, 0.2)
+        GL.glVertex3f(-0.5, 0, 0)
+        GL.glVertex3f(0.5, 0, 0)
+        # y axis
+        GL.glVertex3f(0, -0.5*GOLDEN_RATIO, 0)
+        GL.glVertex3f(0, 0.5*GOLDEN_RATIO, 0)
+        GL.glEnd()
+
+
 
     def resizeGL(self, width, height):
         side = min(width, height)
+        hr = 0.5*height/width
         if side < 0:
             return
-
         GL.glViewport((width - side) / 2, (height - side) / 2, side, side)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GL.glOrtho(-0.5, +0.5, +0.5, -0.5, 4.0, 15.0)
+        ortho_height = GOLDEN_RATIO*0.5
+        GL.glOrtho(-0.5, 0.5, ortho_height, -ortho_height, -1.0, 1.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glViewport(0,0,width,height)
 
     def mousePressEvent(self, event):
         self.lastPos = event.pos()
 
     def mouseMoveEvent(self, event):
-#        dx = event.x() - self.lastPos.x()
-#        dy = event.y() - self.lastPos.y()
         if event.buttons() & QtCore.Qt.LeftButton:
             pass
         elif event.buttons() & QtCore.Qt.RightButton:
