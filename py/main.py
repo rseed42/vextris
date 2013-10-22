@@ -140,10 +140,10 @@ SPEED = 0.05
 #-------------------------------------------------------------------------------
 
 # Use a matrix
-def hex2pix(q,r):
-    x = RADIUS * 1.5 * q + 0.5*RADIUS
-    y = RADIUS * SQRT3 * (r + 0.5*q)
-    return np.array([x,y]) + OFFSET
+def hex2pix(q,r, radius, offset):
+    x = radius * 1.5 * q + 0.5*radius
+    y = radius * SQRT3 * (r + 0.5*q)
+    return np.array([x,y]) + offset
 #-------------------------------------------------------------------------------
 # Piece Class: Describes piece type, position, and orientation
 #-------------------------------------------------------------------------------
@@ -313,9 +313,34 @@ class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
         self.lastPos = QtCore.QPoint()
+        self.setFixedSize(*FIELD_SIZE)
 
-    def sizeHint(self):
-        return QtCore.QSize(*FIELD_SIZE)
+
+
+        # ---------- RECODE ----------
+        self.hex_num = 13
+        # Maybe should make sure the result is an integer
+        self.half_hex_num = self.hex_num/2
+#        SQRT3 = np.sqrt(3)
+# HEIGHT_COEFF = 0.5*SQRT3
+        self.hex_radius = 2.*(1./(3.*self.hex_num  + 1.))
+        # Whole height
+        self.hex_height = SQRT3*self.hex_radius
+        # We also need to calculate how many fit in horizontally
+        self.hex_num_vert = int(np.floor(GOLDEN_RATIO/self.hex_height))
+        # Offset vertically by the empty space due to imprecise number of hexes
+        self.offset = np.array([0.5*self.hex_radius,
+                                HEIGHT_COEFF*self.hex_radius + \
+                                GOLDEN_RATIO - \
+                                self.hex_num_vert*self.hex_height])
+#        self.hexmap = np.zeros((self.hex_num_vert, self.hex_num, 3))
+        # The bottom
+#        self.hexmap[self.hex_num_vert-1,:,:] = (0.2,0.2,0.2)
+        self.hexagon = np.zeros((6,2))
+        for i in xrange(6):
+            angle = i*DEG60
+            self.hexagon[i][0] = self.hex_radius * np.cos(angle)
+            self.hexagon[i][1] = self.hex_radius * np.sin(angle)
 
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
@@ -325,23 +350,37 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glDepthFunc(GL.GL_LEQUAL)
         GL.glHint(GL.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST)
 
-
     def paintGL(self):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         GL.glLoadIdentity()
         GL.glTranslatef(0.0, 0.0, -1)
 
-        # Paint the coordinate system x,y,z : r, g, b first
-        GL.glBegin(GL.GL_LINES)
-        # x axis
-        GL.glColor3f(0.2, 0.2, 0.2)
-        GL.glVertex3f(-0.5, 0, 0)
-        GL.glVertex3f(0.5, 0, 0)
-        # y axis
-        GL.glVertex3f(0, -0.5*GOLDEN_RATIO, 0)
-        GL.glVertex3f(0, 0.5*GOLDEN_RATIO, 0)
-        GL.glEnd()
 
+
+        # Draw Hex Grid
+        GL.glColor3f(0.2,0.2,0.2)
+        for q in xrange(self.hex_num):
+            for r in xrange(self.hex_num_vert):
+                # Coordinates for r must be corrected due to romboidal
+                # (non-perpendicular angle between the axes) shape.
+                s = r - q/2
+                pos = hex2pix(q,s, self.hex_radius, self.offset)
+                GL.glBegin(GL.GL_LINE_STRIP)
+                hex = self.hexagon + pos
+                for v in hex:
+                    GL.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                GL.glVertex3f(v[0], v[1], 0)
+                GL.glEnd()
+
+#        # Draw the borders at the end
+#        GL.glBegin(GL.GL_LINE_STRIP)
+#        GL.glColor3f(0.6,0.6,0.6)
+#        for v in self.hexagon:
+#            GL.glVertex3f(v[0],v[1],0)
+#        v = self.hexagon[0]
+#        GL.glVertex3f(v[0], v[1], 0)
+#        GL.glEnd()
 
 
     def resizeGL(self, width, height):
@@ -353,9 +392,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         ortho_height = GOLDEN_RATIO*0.5
-        GL.glOrtho(-0.5, 0.5, ortho_height, -ortho_height, -1.0, 1.0)
+#        GL.glOrtho(-0.5, 0.5, ortho_height, -ortho_height, -1.0, 1.0)
+        GL.glOrtho(0, 1.0, 0, GOLDEN_RATIO, -1.0, 1.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glViewport(0,0,width,height)
+
+
 
     def mousePressEvent(self, event):
         self.lastPos = event.pos()
@@ -366,6 +408,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         elif event.buttons() & QtCore.Qt.RightButton:
             pass
         self.lastPos = event.pos()
+
+#    def keyPressEvent(self, event):
+#        if key == QtCore.Qt.Key_Q :
+#
+#
+
 
 #-------------------------------------------------------------------------------
 # Window
