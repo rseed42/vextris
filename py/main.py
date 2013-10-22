@@ -14,7 +14,8 @@ except ImportError:
 import numpy as np
 #-------------------------------------------------------------------------------
 WND_TITLE = 'VexTris'
-GOLDEN_RATIO = 0.5*(1+np.sqrt(5))
+#GOLDEN_RATIO = 0.5*(1+np.sqrt(5))
+GOLDEN_RATIO = 2.
 FPS_RATE = 30
 # Dimensions
 FIELD_WIDTH = 320
@@ -144,6 +145,7 @@ def hex2pix(q,r, radius, offset):
     x = radius * 1.5 * q + 0.5*radius
     y = radius * SQRT3 * (r + 0.5*q)
     return np.array([x,y]) + offset
+
 #-------------------------------------------------------------------------------
 # Piece Class: Describes piece type, position, and orientation
 #-------------------------------------------------------------------------------
@@ -175,137 +177,6 @@ class Piece(object):
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
 
-#class Game(object):
-#    """ Display and interact with the world
-#    """
-#    def __init__(self):
-#        pygame.display.set_caption(WND_TITLE)
-#        self.fps_clock = pygame.time.Clock()
-#        self.surface = pygame.display.set_mode(WND_SIZE)
-#        self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
-#                                            italic=False)
-#        self.pause = False
-#        self.hexagon = np.zeros((6,2))
-#        for i in xrange(6):
-#            angle = i*DEG60
-#            self.hexagon[i][0] = RADIUS * np.cos(angle)
-#            self.hexagon[i][1] = RADIUS * np.sin(angle)
-#
-#        self.piece = Piece(np.random.randint(10), TOP)
-#        # Draw active piece
-#        # Find a way to index array directly
-#        for h in self.piece.hexagons():
-#            HEXMAP[h[0], h[1]] = self.piece.color
-#        # Speed
-#        self.speed = SPEED
-#
-#    def update(self):
-#        if self.piece == None:
-#            return
-#
-#        # Erase piece first
-#        for h in self.piece.hexagons():
-#            HEXMAP[h[0], h[1]] = BGCOL
-#        self.piece.fall(self.speed)
-#        # Redraw
-#        for h in self.piece.hexagons():
-#            HEXMAP[h[0], h[1]] = self.piece.color
-#
-#        # Collision detection
-#        for hex in self.piece.hexagons():
-#            if hex[0] >= HEXMAP.shape[0] - 2:
-#                self.piece = None
-#
-#
-#
-#
-#    def draw(self):
-#        """ Update visual objects
-#        """
-#        self.surface.fill(BGCOL)
-#        self.field = self.surface.subsurface(FIELD)
-#
-#
-#        for r in xrange(-1, HEXMAP.shape[0]):
-#            for q in xrange(HEXMAP.shape[1]):
-#                # Coordinates for r must be corrected due to romboidal
-#                # (non-perpendicular angle between the axes) shape.
-#                s = r - q/2
-#                if r >= 0:
-#                    hexpoly = pygame.draw.polygon(self.field,
-#                                                  HEXMAP[r, q],
-#                                                  self.hexagon + hex2pix(q,s),
-#                                                  0
-#                    )
-#                hexborder = pygame.draw.aalines(self.field,
-#                                                HEXGRID_COL,
-#                                                True,
-#                                                self.hexagon + hex2pix(q,s))
-##        if self.piece:
-##            for h in self.piece.hexagons():
-##                HEXMAP[h[0], h[1]] = BGCOL
-##            for h in self.piece.hexagons():
-##                HEXMAP[h[0], h[1]] = self.piece.color
-#
-#
-#        self.field_border = pygame.draw.rect(self.surface,
-#                                             FIELD_BORDER_COL,
-#                                             FIELD_BORDER,
-#                                             1
-#        )
-#
-#
-#    def run(self):
-#        while True:
-#            for event in pygame.event.get():
-#                if event.type == QUIT:
-#                    pygame.quit()
-#                    sys.exit()
-#
-#                elif event.type == KEYDOWN:
-#                    if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
-#                        if not self.piece: continue
-#                        # Erase piece first
-#                        for h in self.piece.hexagons():
-#                            HEXMAP[h[0], h[1]] = BGCOL
-#
-#                        if event.key == K_UP:
-#                            self.piece.rotate_right()
-#                        elif event.key == K_DOWN:
-#                            self.piece.rotate_left()
-#                        elif event.key == K_LEFT:
-#                            if self.piece.hexagons()[:,1].min() <= 0:
-#                                continue
-#                            self.piece.pos[1] -= 1
-#                        elif event.key == K_RIGHT:
-#                            if self.piece.hexagons()[:,1].max() >= \
-#                               HEXMAP.shape[1]-1:
-#                                continue
-#                            self.piece.pos[1] += 1
-#                        # Redraw
-#                        for h in self.piece.hexagons():
-#                            HEXMAP[h[0], h[1]] = self.piece.color
-#
-#                    if event.key == K_p:
-#                        self.pause = not self.pause
-#                    if event.key == K_s:
-#                        pass
-#                    if event.key == K_q:
-#                        pygame.quit()
-#                        sys.exit()
-#                    if event.key == K_ESCAPE:
-#                        pygame.event.post(pygame.event.Event(QUIT))
-#
-#            # Game update
-#            self.update()
-#            # Graphics update
-#            self.draw()
-#            pygame.display.update()
-#            self.fps_clock.tick(FPS_RATE)
-#-------------------------------------------------------------------------------
-# Game?
-#-------------------------------------------------------------------------------
-
 #-------------------------------------------------------------------------------
 # GL Widget
 #-------------------------------------------------------------------------------
@@ -321,8 +192,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hex_num = 13
         # Maybe should make sure the result is an integer
         self.half_hex_num = self.hex_num/2
-#        SQRT3 = np.sqrt(3)
-# HEIGHT_COEFF = 0.5*SQRT3
         self.hex_radius = 2.*(1./(3.*self.hex_num  + 1.))
         # Whole height
         self.hex_height = SQRT3*self.hex_radius
@@ -333,14 +202,19 @@ class GLWidget(QtOpenGL.QGLWidget):
                                 HEIGHT_COEFF*self.hex_radius + \
                                 GOLDEN_RATIO - \
                                 self.hex_num_vert*self.hex_height])
-#        self.hexmap = np.zeros((self.hex_num_vert, self.hex_num, 3))
-        # The bottom
-#        self.hexmap[self.hex_num_vert-1,:,:] = (0.2,0.2,0.2)
+
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
             angle = i*DEG60
             self.hexagon[i][0] = self.hex_radius * np.cos(angle)
             self.hexagon[i][1] = self.hex_radius * np.sin(angle)
+
+        # The hexmap is a width x height matrix so that it can be
+        # for coordinate conversion in a more natural way
+        self.colmap = np.zeros((self.hex_num, self.hex_num_vert, 3))
+
+        self.colmap[:,0] = (0,0,0.3)
+        self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
 
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
@@ -355,9 +229,24 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glLoadIdentity()
         GL.glTranslatef(0.0, 0.0, -1)
 
+        # Draw the hexagons
+        for q in xrange(self.hex_num):
+            for r in xrange(self.hex_num_vert):
+                # Coordinates for r must be corrected due to romboidal
+                # (non-perpendicular angle between the axes) shape.
+                s = r - q/2
+                pos = hex2pix(q,s, self.hex_radius, self.offset)
+                GL.glBegin(GL.GL_TRIANGLE_FAN)
+                col = self.colmap[q, r]
+                GL.glColor3f(*self.colmap[q,r])
+                hex = self.hexagon + pos
+                for v in hex:
+                    GL.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                GL.glVertex3f(v[0], v[1], 0)
+                GL.glEnd()
 
-
-        # Draw Hex Grid
+        # Draw the hexagon grid
         GL.glColor3f(0.2,0.2,0.2)
         for q in xrange(self.hex_num):
             for r in xrange(self.hex_num_vert):
@@ -373,16 +262,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
 
-#        # Draw the borders at the end
-#        GL.glBegin(GL.GL_LINE_STRIP)
-#        GL.glColor3f(0.6,0.6,0.6)
-#        for v in self.hexagon:
-#            GL.glVertex3f(v[0],v[1],0)
-#        v = self.hexagon[0]
-#        GL.glVertex3f(v[0], v[1], 0)
-#        GL.glEnd()
-
-
     def resizeGL(self, width, height):
         side = min(width, height)
         hr = 0.5*height/width
@@ -392,12 +271,9 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         ortho_height = GOLDEN_RATIO*0.5
-#        GL.glOrtho(-0.5, 0.5, ortho_height, -ortho_height, -1.0, 1.0)
         GL.glOrtho(0, 1.0, 0, GOLDEN_RATIO, -1.0, 1.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glViewport(0,0,width,height)
-
-
 
     def mousePressEvent(self, event):
         self.lastPos = event.pos()
@@ -409,11 +285,20 @@ class GLWidget(QtOpenGL.QGLWidget):
             pass
         self.lastPos = event.pos()
 
-#    def keyPressEvent(self, event):
-#        if key == QtCore.Qt.Key_Q :
-#
-#
-
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == QtCore.Qt.Key_Left:
+            print 'left'
+        elif key == QtCore.Qt.Key_Right:
+            pass
+        elif key == QtCore.Qt.Key_Down:
+            pass
+        elif key == QtCore.Qt.Key_Up:
+            pass
+        elif key == QtCore.Qt.Key_Space:
+            pass
+        elif key == QtCore.Qt.Key_Q:
+            QtGui.qApp.quit()
 
 #-------------------------------------------------------------------------------
 # Window
@@ -426,6 +311,7 @@ class Window(QtGui.QWidget):
         layout.addWidget(self.glWidget)
         self.setLayout(layout)
         self.setWindowTitle("PyQt4 OpenGL Template")
+        self.glWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
 
 #-------------------------------------------------------------------------------
 # Main
