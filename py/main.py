@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 #-------------------------------------------------------------------------------
-import pygame
+#import pygame
 import sys
-from pygame.locals import *
+#from pygame.locals import *
 import numpy as np
 #-------------------------------------------------------------------------------
 WND_TITLE = 'VexTris'
@@ -163,135 +163,136 @@ class Piece(object):
 # GAME Class: Handles logic and graphics
 #-------------------------------------------------------------------------------
 
-class Game(object):
-    """ Display and interact with the world
-    """
-    def __init__(self):
-        pygame.display.set_caption(WND_TITLE)
-        self.fps_clock = pygame.time.Clock()
-        self.surface = pygame.display.set_mode(WND_SIZE)
-        self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
-                                            italic=False)
-        self.pause = False
-        self.hexagon = np.zeros((6,2))
-        for i in xrange(6):
-            angle = i*DEG60
-            self.hexagon[i][0] = RADIUS * np.cos(angle)
-            self.hexagon[i][1] = RADIUS * np.sin(angle)
-
-        self.piece = Piece(np.random.randint(10), TOP)
-        # Draw active piece
-        # Find a way to index array directly
-        for h in self.piece.hexagons():
-            HEXMAP[h[0], h[1]] = self.piece.color
-        # Speed
-        self.speed = SPEED
-
-    def update(self):
-        if self.piece == None:
-            return
-
-        # Erase piece first
-        for h in self.piece.hexagons():
-            HEXMAP[h[0], h[1]] = BGCOL
-        self.piece.fall(self.speed)
-        # Redraw
-        for h in self.piece.hexagons():
-            HEXMAP[h[0], h[1]] = self.piece.color
-
-        # Collision detection
-        for hex in self.piece.hexagons():
-            if hex[0] >= HEXMAP.shape[0] - 2:
-                self.piece = None
-
-
-
-
-    def draw(self):
-        """ Update visual objects
-        """
-        self.surface.fill(BGCOL)
-        self.field = self.surface.subsurface(FIELD)
-
-
-        for r in xrange(-1, HEXMAP.shape[0]):
-            for q in xrange(HEXMAP.shape[1]):
-                # Coordinates for r must be corrected due to romboidal
-                # (non-perpendicular angle between the axes) shape.
-                s = r - q/2
-                if r >= 0:
-                    hexpoly = pygame.draw.polygon(self.field,
-                                                  HEXMAP[r, q],
-                                                  self.hexagon + hex2pix(q,s),
-                                                  0
-                    )
-                hexborder = pygame.draw.aalines(self.field,
-                                                HEXGRID_COL,
-                                                True,
-                                                self.hexagon + hex2pix(q,s))
-#        if self.piece:
-#            for h in self.piece.hexagons():
-#                HEXMAP[h[0], h[1]] = BGCOL
-#            for h in self.piece.hexagons():
-#                HEXMAP[h[0], h[1]] = self.piece.color
-
-
-        self.field_border = pygame.draw.rect(self.surface,
-                                             FIELD_BORDER_COL,
-                                             FIELD_BORDER,
-                                             1
-        )
-
-
-    def run(self):
-        while True:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-                elif event.type == KEYDOWN:
-                    if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
-                        if not self.piece: continue
-                        # Erase piece first
-                        for h in self.piece.hexagons():
-                            HEXMAP[h[0], h[1]] = BGCOL
-
-                        if event.key == K_UP:
-                            self.piece.rotate_right()
-                        elif event.key == K_DOWN:
-                            self.piece.rotate_left()
-                        elif event.key == K_LEFT:
-                            if self.piece.hexagons()[:,1].min() <= 0:
-                                continue
-                            self.piece.pos[1] -= 1
-                        elif event.key == K_RIGHT:
-                            if self.piece.hexagons()[:,1].max() >= \
-                               HEXMAP.shape[1]-1:
-                                continue
-                            self.piece.pos[1] += 1
-                        # Redraw
-                        for h in self.piece.hexagons():
-                            HEXMAP[h[0], h[1]] = self.piece.color
-
-                    if event.key == K_p:
-                        self.pause = not self.pause
-                    if event.key == K_s:
-                        pass
-                    if event.key == K_q:
-                        pygame.quit()
-                        sys.exit()
-                    if event.key == K_ESCAPE:
-                        pygame.event.post(pygame.event.Event(QUIT))
-
-            # Game update
-            self.update()
-            # Graphics update
-            self.draw()
-            pygame.display.update()
-            self.fps_clock.tick(FPS_RATE)
+#class Game(object):
+#    """ Display and interact with the world
+#    """
+#    def __init__(self):
+#        pygame.display.set_caption(WND_TITLE)
+#        self.fps_clock = pygame.time.Clock()
+#        self.surface = pygame.display.set_mode(WND_SIZE)
+#        self.fsb_font = pygame.font.SysFont('Ubuntu-L', 16, bold=False,
+#                                            italic=False)
+#        self.pause = False
+#        self.hexagon = np.zeros((6,2))
+#        for i in xrange(6):
+#            angle = i*DEG60
+#            self.hexagon[i][0] = RADIUS * np.cos(angle)
+#            self.hexagon[i][1] = RADIUS * np.sin(angle)
+#
+#        self.piece = Piece(np.random.randint(10), TOP)
+#        # Draw active piece
+#        # Find a way to index array directly
+#        for h in self.piece.hexagons():
+#            HEXMAP[h[0], h[1]] = self.piece.color
+#        # Speed
+#        self.speed = SPEED
+#
+#    def update(self):
+#        if self.piece == None:
+#            return
+#
+#        # Erase piece first
+#        for h in self.piece.hexagons():
+#            HEXMAP[h[0], h[1]] = BGCOL
+#        self.piece.fall(self.speed)
+#        # Redraw
+#        for h in self.piece.hexagons():
+#            HEXMAP[h[0], h[1]] = self.piece.color
+#
+#        # Collision detection
+#        for hex in self.piece.hexagons():
+#            if hex[0] >= HEXMAP.shape[0] - 2:
+#                self.piece = None
+#
+#
+#
+#
+#    def draw(self):
+#        """ Update visual objects
+#        """
+#        self.surface.fill(BGCOL)
+#        self.field = self.surface.subsurface(FIELD)
+#
+#
+#        for r in xrange(-1, HEXMAP.shape[0]):
+#            for q in xrange(HEXMAP.shape[1]):
+#                # Coordinates for r must be corrected due to romboidal
+#                # (non-perpendicular angle between the axes) shape.
+#                s = r - q/2
+#                if r >= 0:
+#                    hexpoly = pygame.draw.polygon(self.field,
+#                                                  HEXMAP[r, q],
+#                                                  self.hexagon + hex2pix(q,s),
+#                                                  0
+#                    )
+#                hexborder = pygame.draw.aalines(self.field,
+#                                                HEXGRID_COL,
+#                                                True,
+#                                                self.hexagon + hex2pix(q,s))
+##        if self.piece:
+##            for h in self.piece.hexagons():
+##                HEXMAP[h[0], h[1]] = BGCOL
+##            for h in self.piece.hexagons():
+##                HEXMAP[h[0], h[1]] = self.piece.color
+#
+#
+#        self.field_border = pygame.draw.rect(self.surface,
+#                                             FIELD_BORDER_COL,
+#                                             FIELD_BORDER,
+#                                             1
+#        )
+#
+#
+#    def run(self):
+#        while True:
+#            for event in pygame.event.get():
+#                if event.type == QUIT:
+#                    pygame.quit()
+#                    sys.exit()
+#
+#                elif event.type == KEYDOWN:
+#                    if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
+#                        if not self.piece: continue
+#                        # Erase piece first
+#                        for h in self.piece.hexagons():
+#                            HEXMAP[h[0], h[1]] = BGCOL
+#
+#                        if event.key == K_UP:
+#                            self.piece.rotate_right()
+#                        elif event.key == K_DOWN:
+#                            self.piece.rotate_left()
+#                        elif event.key == K_LEFT:
+#                            if self.piece.hexagons()[:,1].min() <= 0:
+#                                continue
+#                            self.piece.pos[1] -= 1
+#                        elif event.key == K_RIGHT:
+#                            if self.piece.hexagons()[:,1].max() >= \
+#                               HEXMAP.shape[1]-1:
+#                                continue
+#                            self.piece.pos[1] += 1
+#                        # Redraw
+#                        for h in self.piece.hexagons():
+#                            HEXMAP[h[0], h[1]] = self.piece.color
+#
+#                    if event.key == K_p:
+#                        self.pause = not self.pause
+#                    if event.key == K_s:
+#                        pass
+#                    if event.key == K_q:
+#                        pygame.quit()
+#                        sys.exit()
+#                    if event.key == K_ESCAPE:
+#                        pygame.event.post(pygame.event.Event(QUIT))
+#
+#            # Game update
+#            self.update()
+#            # Graphics update
+#            self.draw()
+#            pygame.display.update()
+#            self.fps_clock.tick(FPS_RATE)
 
 if __name__ == '__main__':
-    pygame.init()
-    game = Game()
-    game.run()
+#    pygame.init()
+#    game = Game()
+#    game.run()
+    pass
