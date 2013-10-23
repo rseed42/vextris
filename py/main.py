@@ -103,9 +103,10 @@ class Piece(object):
         if not self.color:
             self.color = PIECE_COLS[self.type_id]
 
-    def hexagons(self):
+    def hexagons(self, pos=None):
+        if pos == None: pos = self.pos
         neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][self.rot_id]]
-        return neighbors + self.pos
+        return neighbors + pos
 
     def rotate_left(self):
         self.rot_id = (self.rot_id - 1) % len(SHAPES[self.type_id])
@@ -116,6 +117,12 @@ class Piece(object):
     def fall(self, speed):
         self.height += speed
         self.pos[0] = int(np.floor(self.height))
+
+    def collision(self, newpos, hexmap):
+        for hexpos in self.hexagons(newpos):
+            if hexmap[hexpos[0],hexpos[1]]: return True
+        return False
+
 #-------------------------------------------------------------------------------
 # GL Widget
 #-------------------------------------------------------------------------------
@@ -150,7 +157,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
         self.hexmap[:,0] = 1
         # Piece
-        self.piece = Piece(np.random.randint(10), self.top)
+        self.piece = Piece(np.random.randint(10), self.top.copy())
         self.rasterize_piece()
         # Start timer
         self.timer = QtCore.QBasicTimer()
@@ -200,8 +207,16 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glEnd()
 
     def timerEvent(self, e):
-        if self.piece and self.timer.isActive():
-            self.erase_piece()
+        if not self.piece and not self.timer.isActive(): return
+        self.erase_piece()
+        # Look ahead first
+        newpos = self.piece.pos + np.array([0,-1])
+        if self.piece.collision(newpos, self.hexmap):
+            for hexpos in self.piece.hexagons():
+                self.hexmap[hexpos[0],hexpos[1]] = 1
+            self.rasterize_piece()
+            self.piece = Piece(np.random.randint(10), self.top.copy())
+        else:
             self.piece.pos[1] -= 1
 
         self.rasterize_piece()
