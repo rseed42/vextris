@@ -101,41 +101,76 @@ SHAPES = []
 # 0 - Tetra
 SHAPES.append(np.array([[0,1,3,5],[0,2,4,6]],dtype=np.int64))
 # 1 - Rod
-SHAPES.append( np.array([[0,1,4,13]
-],dtype=np.int64))
+SHAPES.append( np.array([[0,1,4,13],
+                         [0,2,5,15],
+                         [0,3,6,17],
+                         [0,4,1,7],
+                         [0,5,2,9],
+                         [0,6,3,11]],dtype=np.int64))
 # 2 - Solid
-SHAPES.append( np.array([[0,3,4,5]
-],dtype=np.int64))
+SHAPES.append( np.array([[0,3,4,5],
+                         [0,4,5,6],
+                         [0,5,6,1],
+                         [0,6,1,2],
+                         [0,1,2,3],
+                         [0,2,3,4]],dtype=np.int64))
 # 3 - C
 SHAPES.append( np.array([[1,4,5,6],
                          [2,5,6,1],
                          [3,6,1,2],
                          [4,1,2,3],
                          [5,2,3,4],
-                         [6,3,4,5],
-],dtype=np.int64))
+                         [6,3,4,5],],dtype=np.int64))
 # 4 - RL-Rod
 SHAPES.append( np.array([[0,1,4,12],
-],dtype=np.int64))
+                         [0,2,5,14],
+                         [0,3,6,16],
+                         [0,4,1,18],
+                         [0,5,2,8],
+                         [0,6,3,10],],dtype=np.int64))
 # 5 - LL-Rod
 SHAPES.append( np.array([[0,1,4,14],
-],dtype=np.int64))
+                         [0,2,5,16],
+                         [0,3,6,18],
+                         [0,4,1,8],
+                         [0,5,2,10],
+                         [0,6,3,12],],dtype=np.int64))
 # 6 - R-Bent
 SHAPES.append( np.array([[0,1,3,12],
-],dtype=np.int64))
+                         [0,2,4,14],
+                         [0,3,5,16],
+                         [0,4,6,18],
+                         [0,5,1,8],
+                         [0,6,2,10],],dtype=np.int64))
 # 7 - L-Bent
 SHAPES.append( np.array([[0,1,5,14],
-],dtype=np.int64))
+                         [0,2,6,16],
+                         [0,3,1,18],
+                         [0,4,2,8],
+                         [0,5,3,10],
+                         [0,6,4,12],],dtype=np.int64))
 # 8 - R-T
 SHAPES.append( np.array([[0,1,3,4],
-],dtype=np.int64))
+                         [0,2,4,5],
+                         [0,3,5,6],
+                         [0,4,6,1],
+                         [0,5,1,2],
+                         [0,6,2,3],],dtype=np.int64))
 # 9 - R-T
-SHAPES.append( np.array([[0,1,4,5],
-],dtype=np.int64))
+SHAPES.append( np.array([[0,1,5,4],
+                         [0,2,6,5],
+                         [0,3,1,6],
+                         [0,4,2,1],
+                         [0,5,3,2],
+                         [0,6,4,3],],dtype=np.int64))
+
 
 PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
 SPEED = 0.05
-
+KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
+          QtCore.Qt.Key_3:3, QtCore.Qt.Key_4:4, QtCore.Qt.Key_5:5,
+          QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
+          QtCore.Qt.Key_9:9}
 #-------------------------------------------------------------------------------
 
 # Use a matrix
@@ -272,41 +307,15 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
 
-#        # Draw center of piece first (also for debugging)
-#        GL.glColor3f(0.8,0.8,0.2)
-#        i,j = self.piece.pos
-#        GL.glBegin(GL.GL_TRIANGLE_FAN)
-#        hex = self.hexagon + hex2pix(i,j, self.hex_radius, self.offset)
-#        for v in hex:
-#            GL.glVertex3f(v[0],v[1],0)
-#        v = hex[0]
-#        GL.glVertex3f(v[0], v[1], 0)
-#        GL.glEnd()
-
-#        GL.glColor3f(0.7,0,0)
-#        # Draw the hexagons
-#        for relpos in self.hexlist:
-#                q,r = self.hexpos + relpos
-#                # Convert even-q offset to cube
-#                pos = hex2pix(i,j, self.hex_radius, self.offset)
-#                GL.glBegin(GL.GL_TRIANGLE_FAN)
-#                hex = self.hexagon + pos
-#                for v in hex:
-#                    GL.glVertex3f(v[0],v[1],0)
-#                v = hex[0]
-#                GL.glVertex3f(v[0], v[1], 0)
-#                GL.glEnd()
-
-
     def update_game(self):
         for h in self.piece.hexagons():
             self.colmap[h[0],h[1]] = self.piece.color
-#        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0.8,0.8,0.8)
+        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0.8,0.8,0.8)
 
     def erase_piece(self):
         for h in self.piece.hexagons():
             self.colmap[h[0],h[1]] = (0,0,0)
-#        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0,0,0)
+        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0,0,0)
 
 
     def resizeGL(self, width, height):
@@ -357,12 +366,15 @@ class GLWidget(QtOpenGL.QGLWidget):
         elif key == QtCore.Qt.Key_L:
             self.piece.rotate_left()
 
-
+        elif key in KEYMAP:
+            self.piece = Piece(KEYMAP[key], self.piece.pos)
 
         elif key == QtCore.Qt.Key_Space:
             pass
         elif key == QtCore.Qt.Key_Q:
             QtGui.qApp.quit()
+
+
 
         self.update_game()
         self.repaint()
