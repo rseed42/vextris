@@ -19,30 +19,22 @@ FPS_RATE = 30
 FIELD_WIDTH = 320
 FIELD_HEIGHT = FIELD_WIDTH*GOLDEN_RATIO
 FIELD_SIZE = np.array([FIELD_WIDTH, FIELD_HEIGHT])
-# Top, left, right, bottom
-MARGINS = np.array([20,20,120,40])
-#WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
-FIELD = np.concatenate((MARGINS[:2], FIELD_SIZE))
-# Draw borders around the field so that figures inside are not affected
-FIELD_BORDER = FIELD.copy() + np.array([-1,-1,2,2])
-FIELD_BORDER_COL = np.array([64,64,64], dtype=np.uint8)
 #-------------------------------------------------------------------------------
 # Colors
-WHITE = np.array([255,255,255], dtype=np.uint8)
-BLACK = np.zeros(3, dtype=np.uint8)
-RED = np.array([196, 0, 0], dtype=np.uint8)
-GREEN = np.array([0, 196, 0], dtype=np.uint8)
-HEXGRID_COL = np.array([48,48,48], dtype=np.uint8)
-BLUE = np.array([0, 0, 196], dtype=np.uint8)
-MAGENTA = np.array([128,0,128], dtype=np.uint8)
-ORANGE = np.array([255, 128, 0], dtype=np.uint8)
-VIOLETT = np.array([122, 32, 184], dtype=np.uint8)
-DARK_CYAN = np.array([0, 128, 128], dtype=np.uint8)
-CYAN = np.array([0, 196, 196], dtype=np.uint8)
-YELLOW = np.array([196, 196, 0], dtype=np.uint8)
-GREY = np.array([0.5, 0.5, 0.5])
-BGCOL = BLACK
+BLACK = np.zeros(3)
+GREY = np.array([0.5,0.5,0.5])
+WHITE = np.ones(3)
+RED = np.array([0.8,0,0])
+GREEN = np.array([0,0.8,0])
+BLUE = np.array([0, 0,0.8])
+MAGENTA = np.array([0.5,0,0.5])
+ORANGE = np.array([0.5,0.5,0])
+VIOLETT = np.array([0.5,0.13,0.7])
+DARK_CYAN = np.array([0,0.5,0.5])
+CYAN = np.array([0,0.8,0.8])
+YELLOW = np.array([0.8,0.8,0])
 PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
+HEXGRID_COL = np.array([0.2,0.2,0.2])
 #-------------------------------------------------------------------------------
 # Math
 DEG60 = np.pi/3
