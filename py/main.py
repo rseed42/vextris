@@ -86,12 +86,12 @@ SPEED = 2.
 #          QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
 #          QtCore.Qt.Key_9:9}
 #-------------------------------------------------------------------------------
-def hex2pix(q,r, radius, offset):
+def hex2pix(q,r, radius):
     """ Hexagons are in an even-q vertical layout
     """
-    x = radius * 1.5 * q + 0.5*radius
+    x = radius * 1.5 * q + radius
     y = radius * SQRT3 * (r - 0.5*(q&1))
-    return np.array([x,y]) + offset
+    return np.array([x,y])
 #-------------------------------------------------------------------------------
 # Piece Class: Describes piece type, position, and orientation
 #-------------------------------------------------------------------------------
@@ -137,13 +137,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Whole height
         self.hex_height = SQRT3*self.hex_radius
         # We also need to calculate how many fit in horizontally
-        self.hex_num_vert = int(np.floor(GOLDEN_RATIO/self.hex_height))
+        self.hex_num_vert = int(np.floor(GOLDEN_RATIO/self.hex_height))+4
         # Offset vertically by the empty space due to imprecise number of hexes
-        self.offset = np.array([0.5*self.hex_radius,
-                                HEIGHT_COEFF*self.hex_radius + \
-                                GOLDEN_RATIO - \
-                                self.hex_num_vert*self.hex_height])
-
         self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
                                dtype=np.int64)
         self.top = np.array([self.hex_num/2,self.hex_num_vert-2],dtype=np.int64)
@@ -198,7 +193,8 @@ class GLWidget(QtOpenGL.QGLWidget):
             for j in xrange(self.hex_num_vert):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-                pos = hex2pix(i,j, self.hex_radius, self.offset)
+#                pos = hex2pix(i,j, self.hex_radius, self.offset)
+                pos = hex2pix(i,j, self.hex_radius)
                 GL.glBegin(GL.GL_TRIANGLE_FAN)
                 col = self.colmap[i, j]
                 GL.glColor3f(*self.colmap[i,j])
@@ -215,7 +211,8 @@ class GLWidget(QtOpenGL.QGLWidget):
             for j in xrange(self.hex_num_vert):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-                pos = hex2pix(i,j, self.hex_radius, self.offset)
+#                pos = hex2pix(i,j, self.hex_radius, self.offset)
+                pos = hex2pix(i,j, self.hex_radius)
                 GL.glBegin(GL.GL_LINE_STRIP)
                 hex = self.hexagon + pos
                 for v in hex:
