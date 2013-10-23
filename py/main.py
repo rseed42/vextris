@@ -81,7 +81,7 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
 #-------------------------------------------------------------------------------
 # Dynamics
 # Rows/sec
-SPEED = 1.
+SPEED = 2.
 #KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
 #          QtCore.Qt.Key_3:3, QtCore.Qt.Key_4:4, QtCore.Qt.Key_5:5,
 #          QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
@@ -147,6 +147,8 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
                                dtype=np.int64)
+        self.top = np.array([self.hex_num/2,self.hex_num_vert-2],dtype=np.int64)
+
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
             angle = i*DEG60
@@ -165,15 +167,19 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexpos = np.array([4,8])
 
         # Piece
-        self.piece = Piece(np.random.randint(10), self.center)
+        self.piece = Piece(np.random.randint(10), self.top)
         self.update_game()
 
         # Start timer
         self.timer = QtCore.QBasicTimer()
 
     def timerEvent(self, e):
-        print 'timer'
+        if self.piece:
+            self.erase_piece()
+            self.piece.pos[1] -= 1
 
+        self.update_game()
+        self.repaint()
 
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
