@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-#-------------------------------------------------------------------------------
-#import pygame
 import sys
 from PyQt4 import QtCore, QtGui, QtOpenGL
 try:
@@ -12,16 +10,15 @@ except ImportError:
     sys.exit(1)
 
 import numpy as np
-#-------------------------------------------------------------------------------
+#===============================================================================
+# GUI Definitions
 WND_TITLE = 'VexTris'
-#GOLDEN_RATIO = 0.5*(1+np.sqrt(5))
 GOLDEN_RATIO = 2.
 FPS_RATE = 30
 # Dimensions
 FIELD_WIDTH = 320
 FIELD_HEIGHT = FIELD_WIDTH*GOLDEN_RATIO
 FIELD_SIZE = np.array([FIELD_WIDTH, FIELD_HEIGHT])
-FIELD_CENTER = 0.5*FIELD_SIZE
 # Top, left, right, bottom
 MARGINS = np.array([20,20,120,40])
 #WND_SIZE = FIELD_SIZE + MARGINS[:2] + MARGINS[2:]
@@ -29,6 +26,7 @@ FIELD = np.concatenate((MARGINS[:2], FIELD_SIZE))
 # Draw borders around the field so that figures inside are not affected
 FIELD_BORDER = FIELD.copy() + np.array([-1,-1,2,2])
 FIELD_BORDER_COL = np.array([64,64,64], dtype=np.uint8)
+#-------------------------------------------------------------------------------
 # Colors
 WHITE = np.array([255,255,255], dtype=np.uint8)
 BLACK = np.zeros(3, dtype=np.uint8)
@@ -43,35 +41,14 @@ DARK_CYAN = np.array([0, 128, 128], dtype=np.uint8)
 CYAN = np.array([0, 196, 196], dtype=np.uint8)
 YELLOW = np.array([196, 196, 0], dtype=np.uint8)
 GREY = np.array([0.5, 0.5, 0.5])
-
 BGCOL = BLACK
+PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
+#-------------------------------------------------------------------------------
 # Math
 DEG60 = np.pi/3
-# Better be odd!
-HEX_NUM_HORIZ = 13
-# Maybe should make sure the result is an integer
-HALF_HEX_NUM = HEX_NUM_HORIZ/2
 SQRT3 = np.sqrt(3)
 HEIGHT_COEFF = 0.5*SQRT3
-RADIUS = 2.*(FIELD_SIZE[0]/(3.*HEX_NUM_HORIZ  + 1.))
-# Whole height
-HEIGHT = SQRT3*RADIUS
-# We also need to calculate how many fit in horizontally
-HEX_NUM_VERT = int(np.floor(FIELD_SIZE[1]/HEIGHT))
-# Offset vertically by the empty space due to imprecise number of hexagons
-OFFSET = np.array([0.5*RADIUS,
-                   HEIGHT_COEFF*RADIUS + FIELD_SIZE[1] - HEX_NUM_VERT*HEIGHT])
-HEXMAP = np.zeros((HEX_NUM_VERT, HEX_NUM_HORIZ, 3))
-# The bottom
-HEXMAP[HEX_NUM_VERT-1,:,:] = (48,48,48)
-# Define shapes
-#CENTER = np.array([HEX_NUM_VERT/2-1, HEX_NUM_HORIZ/2], dtype=np.int64)
-#CENTER = np.array([HEX_NUM_HORIZ/2-1, HEX_NUM_HORIZ/2], dtype=np.int64)
-TOP = np.array([2, HEX_NUM_HORIZ/2], dtype=np.int64)
-# Remeber, coordinates are (v,h) due to hexmap structure
-
-
-
+#-------------------------------------------------------------------------------
 # Shapes are defined as the first and second order neighbors of
 # the pos variable in a piece. Due to position-dependent distance
 # on the hex grid, we need to calculate their relative position
@@ -81,98 +58,42 @@ TOP = np.array([2, HEX_NUM_HORIZ/2], dtype=np.int64)
 # The locations depending on odd/even location of the center are
 # defined in an array for the odd and even situation.
 
-NLOC = np.array([[
-# even
-[0,0],[0,1],[1,1],[1,0],[0,-1],[-1,0],[-1,1],
-[0,2],[1,2],[2,1],[2,0],[2, -1],[1,-1],
-    [0,-2],[-1,-1],[-2,-1],[-2,0],[-2, 1],[-1,2]
-],
-# odd
-[
-[0,0],[0,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],
-[0,2],[1,1],[2,1],[2,0],[2,-1],[1,-2],
-    [0,-2],[-1,-2],[-2,-1],[-2,0],[-2,1],[-1,1]
-]
-], dtype=np.int64)
-
-
-
+# Neighborhood map, depending on whether the position horizontal
+# coordinate is [even, odd]
+NLOC = np.array([[[0,0],[0,1],[1,1],[1,0],[0,-1],[-1,0],[-1,1],[0,2],[1,2],
+                  [2,1],[2,0],[2, -1],[1,-1],[0,-2],[-1,-1],[-2,-1],[-2,0],
+                  [-2, 1],[-1,2]],
+                 [[0,0],[0,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[0,2],[1,1],
+                  [2,1],[2,0],[2,-1],[1,-2],[0,-2],[-1,-2],[-2,-1],[-2,0],
+                  [-2,1],[-1,1]]], dtype=np.int64)
 SHAPES = []
-# 0 - Tetra
 SHAPES.append(np.array([[0,1,3,5],[0,2,4,6]],dtype=np.int64))
-# 1 - Rod
-SHAPES.append( np.array([[0,1,4,13],
-                         [0,2,5,15],
-                         [0,3,6,17],
-                         [0,4,1,7],
-                         [0,5,2,9],
-                         [0,6,3,11]],dtype=np.int64))
-# 2 - Solid
-SHAPES.append( np.array([[0,3,4,5],
-                         [0,4,5,6],
-                         [0,5,6,1],
-                         [0,6,1,2],
-                         [0,1,2,3],
+SHAPES.append( np.array([[0,1,4,13],[0,2,5,15],[0,3,6,17],[0,4,1,7],
+                         [0,5,2,9],[0,6,3,11]],dtype=np.int64))
+SHAPES.append( np.array([[0,3,4,5],[0,4,5,6],[0,5,6,1],[0,6,1,2],[0,1,2,3],
                          [0,2,3,4]],dtype=np.int64))
-# 3 - C
-SHAPES.append( np.array([[1,4,5,6],
-                         [2,5,6,1],
-                         [3,6,1,2],
-                         [4,1,2,3],
-                         [5,2,3,4],
+SHAPES.append( np.array([[1,4,5,6],[2,5,6,1],[3,6,1,2],[4,1,2,3],[5,2,3,4],
                          [6,3,4,5],],dtype=np.int64))
-# 4 - RL-Rod
-SHAPES.append( np.array([[0,1,4,12],
-                         [0,2,5,14],
-                         [0,3,6,16],
-                         [0,4,1,18],
-                         [0,5,2,8],
-                         [0,6,3,10],],dtype=np.int64))
-# 5 - LL-Rod
-SHAPES.append( np.array([[0,1,4,14],
-                         [0,2,5,16],
-                         [0,3,6,18],
-                         [0,4,1,8],
-                         [0,5,2,10],
-                         [0,6,3,12],],dtype=np.int64))
-# 6 - R-Bent
-SHAPES.append( np.array([[0,1,3,12],
-                         [0,2,4,14],
-                         [0,3,5,16],
-                         [0,4,6,18],
-                         [0,5,1,8],
-                         [0,6,2,10],],dtype=np.int64))
-# 7 - L-Bent
-SHAPES.append( np.array([[0,1,5,14],
-                         [0,2,6,16],
-                         [0,3,1,18],
-                         [0,4,2,8],
-                         [0,5,3,10],
-                         [0,6,4,12],],dtype=np.int64))
-# 8 - R-T
-SHAPES.append( np.array([[0,1,3,4],
-                         [0,2,4,5],
-                         [0,3,5,6],
-                         [0,4,6,1],
-                         [0,5,1,2],
-                         [0,6,2,3],],dtype=np.int64))
-# 9 - R-T
-SHAPES.append( np.array([[0,1,5,4],
-                         [0,2,6,5],
-                         [0,3,1,6],
-                         [0,4,2,1],
-                         [0,5,3,2],
+SHAPES.append( np.array([[0,1,4,12],[0,2,5,14],[0,3,6,16],[0,4,1,18],
+                         [0,5,2,8],[0,6,3,10],],dtype=np.int64))
+SHAPES.append( np.array([[0,1,4,14],[0,2,5,16],[0,3,6,18],[0,4,1,8],
+                         [0,5,2,10],[0,6,3,12],],dtype=np.int64))
+SHAPES.append( np.array([[0,1,3,12],[0,2,4,14],[0,3,5,16],[0,4,6,18],
+                         [0,5,1,8],[0,6,2,10],],dtype=np.int64))
+SHAPES.append( np.array([[0,1,5,14],[0,2,6,16],[0,3,1,18],[0,4,2,8],
+                         [0,5,3,10],[0,6,4,12],],dtype=np.int64))
+SHAPES.append( np.array([[0,1,3,4],[0,2,4,5],[0,3,5,6],[0,4,6,1],
+                         [0,5,1,2],[0,6,2,3],],dtype=np.int64))
+SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
                          [0,6,4,3],],dtype=np.int64))
-
-
-PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
+#-------------------------------------------------------------------------------
+# Dynamics
 SPEED = 0.05
 KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
           QtCore.Qt.Key_3:3, QtCore.Qt.Key_4:4, QtCore.Qt.Key_5:5,
           QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
           QtCore.Qt.Key_9:9}
 #-------------------------------------------------------------------------------
-
 # Use a matrix
 def hex2pix(q,r, radius, offset):
     """ Hexagons are in an even-q vertical layout
@@ -180,7 +101,6 @@ def hex2pix(q,r, radius, offset):
     x = radius * 1.5 * q
     y = radius * SQRT3 * (r - 0.5*(q&1))
     return np.array([x,y]) + offset
-
 #-------------------------------------------------------------------------------
 # Piece Class: Describes piece type, position, and orientation
 #-------------------------------------------------------------------------------
@@ -208,11 +128,6 @@ class Piece(object):
     def fall(self, speed):
         self.height += speed
         self.pos[0] = int(np.floor(self.height))
-
-#-------------------------------------------------------------------------------
-# GAME Class: Handles logic and graphics
-#-------------------------------------------------------------------------------
-
 #-------------------------------------------------------------------------------
 # GL Widget
 #-------------------------------------------------------------------------------
@@ -221,8 +136,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         super(GLWidget, self).__init__(parent)
         self.lastPos = QtCore.QPoint()
         self.setFixedSize(*FIELD_SIZE)
-
-
 
         # ---------- RECODE ----------
         self.hex_num = 13
@@ -259,7 +172,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexpos = np.array([4,8])
 
         # Piece
-        self.piece = Piece(9, self.center)
+        self.piece = Piece(np.random.randint(10), self.center)
         self.update_game()
 
 
@@ -310,13 +223,10 @@ class GLWidget(QtOpenGL.QGLWidget):
     def update_game(self):
         for h in self.piece.hexagons():
             self.colmap[h[0],h[1]] = self.piece.color
-        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0.8,0.8,0.8)
 
     def erase_piece(self):
         for h in self.piece.hexagons():
             self.colmap[h[0],h[1]] = (0,0,0)
-        self.colmap[self.piece.pos[0],self.piece.pos[1]] = (0,0,0)
-
 
     def resizeGL(self, width, height):
         side = min(width, height)
@@ -374,11 +284,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         elif key == QtCore.Qt.Key_Q:
             QtGui.qApp.quit()
 
-
-
         self.update_game()
         self.repaint()
-
 #-------------------------------------------------------------------------------
 # Window
 #-------------------------------------------------------------------------------
@@ -391,7 +298,6 @@ class Window(QtGui.QWidget):
         self.setLayout(layout)
         self.setWindowTitle("PyQt4 OpenGL Template")
         self.glWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
-
 #-------------------------------------------------------------------------------
 # Main
 #-------------------------------------------------------------------------------
