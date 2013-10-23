@@ -81,7 +81,7 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
 #-------------------------------------------------------------------------------
 # Dynamics
 # Rows/sec
-SPEED = 3.
+SPEED = 6.
 #-------------------------------------------------------------------------------
 def hex2pix(q,r, radius):
     """ Hexagons are in an even-q vertical layout
@@ -139,11 +139,11 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Whole height
         self.hex_height = SQRT3*self.hex_radius
         # We also need to calculate how many fit in horizontally
-        self.hex_num_vert = int(np.floor(GOLDEN_RATIO/self.hex_height))+4
+        self.hex_num_vert = int(np.floor(GOLDEN_RATIO/self.hex_height))
         # Offset vertically by the empty space due to imprecise number of hexes
         self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
                                dtype=np.int64)
-        self.top = np.array([self.hex_num/2,self.hex_num_vert-2],dtype=np.int64)
+        self.top = np.array([self.hex_num/2,self.hex_num_vert+2],dtype=np.int64)
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
             angle = i*DEG60
@@ -152,15 +152,12 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         # The hexmap is a width x height matrix so that it can be
         # for coordinate conversion in a more natural way
-        self.colmap = np.zeros((self.hex_num, self.hex_num_vert, 3))
+        self.colmap = np.zeros((self.hex_num, self.hex_num_vert+4, 3))
         self.colmap[:,0] = HEXGRID_COL
-        self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
+        self.hexmap = np.zeros((self.hex_num, self.hex_num_vert+4))
         self.hexmap[:,0] = 1
-        # Piece
-        self.piece = Piece(np.random.randint(10), self.top.copy())
-        self.rasterize_piece()
-        # Start timer
         self.timer = QtCore.QBasicTimer()
+        self.piece = None
 
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
@@ -177,7 +174,7 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         # Draw the hexagons
         for i in xrange(self.hex_num):
-            for j in xrange(self.hex_num_vert):
+            for j in xrange(self.hex_num_vert+4):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
                 pos = hex2pix(i,j, self.hex_radius)
@@ -194,7 +191,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Draw the hexagon grid
         GL.glColor3f(*HEXGRID_COL)
         for i in xrange(self.hex_num):
-            for j in xrange(self.hex_num_vert):
+            for j in xrange(self.hex_num_vert+4):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
                 pos = hex2pix(i,j, self.hex_radius)
@@ -206,15 +203,40 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
 
+    def new_game(self):
+        self.colmap[:,1:] = BGCOL
+        self.hexmap[:,1:] = 0
+        self.piece = Piece(np.random.randint(10), self.top.copy())
+        self.rasterize_piece()
+        self.timer.start(1000./self.speed, self)
+
     def timerEvent(self, e):
         if not self.piece and not self.timer.isActive(): return
         self.erase_piece()
         # Look ahead first
         newpos = self.piece.pos + np.array([0,-1])
         if self.piece.collision(newpos, self.hexmap):
-            for hexpos in self.piece.hexagons():
+            # Check wether the current piece touches the top (game over)
+            hexagons = self.piece.hexagons()
+            if self.hex_num_vert-1 in hexagons[:,1]:
+                print 'Game Over'
+                self.timer.stop()
+            # Take care of the current piece
+            for hexpos in hexagons:
                 self.hexmap[hexpos[0],hexpos[1]] = 1
             self.rasterize_piece()
+            # Scan for full lines
+            i = 1
+            while i < self.hex_num_vert:
+                if self.hexmap[:,i].sum() == self.hex_num:
+                    # Pull down all the rows above i
+                    for j in xrange(i, self.hex_num_vert-1):
+                        for k in xrange(self.hex_num):
+                            self.colmap[k,j] = self.colmap[k,j+1]
+                            self.hexmap[k,j] = self.hexmap[k,j+1]
+                i += 1
+
+            # Generate a new piece
             self.piece = Piece(np.random.randint(10), self.top.copy())
         else:
             self.piece.pos[1] -= 1
@@ -253,41 +275,33 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.lastPos = event.pos()
 
     def keyPressEvent(self, event):
-        self.erase_piece()
         key = event.key()
+        if key == QtCore.Qt.Key_Q:
+            QtGui.qApp.quit()
+        elif key == QtCore.Qt.Key_N:
+            self.new_game()
+        elif key == QtCore.Qt.Key_P:
+            if self.timer.isActive():
+                self.timer.stop()
+            elif self.piece:
+                self.timer.start(1000./self.speed, self)
+
+        if not self.timer.isActive(): return
+        self.erase_piece()
         if key == QtCore.Qt.Key_Left:
             if self.piece.hexagons()[:,0].min() > 0:
                 self.piece.pos[0] -= 1
-
         elif key == QtCore.Qt.Key_Right:
-
             if self.piece.hexagons()[:,0].max() < self.hex_num-1:
                 self.piece.pos[0] += 1
-
         elif key == QtCore.Qt.Key_Down:
             # Need to check for rotations (maybe implement move, rot
             # functions in the piece
             self.piece.rotate_left()
-
         elif key == QtCore.Qt.Key_Up:
             self.piece.rotate_right()
-
         elif key == QtCore.Qt.Key_Space:
             pass
-        elif key == QtCore.Qt.Key_Q:
-            QtGui.qApp.quit()
-
-        elif key == QtCore.Qt.Key_N:
-            # Start game
-            self.timer.start(1000./self.speed, self)
-
-        elif key == QtCore.Qt.Key_P:
-            # Pause game
-            if self.timer.isActive():
-                self.timer.stop()
-            else:
-                self.timer.start(1000./self.speed, self)
-
         self.rasterize_piece()
         self.repaint()
 #-------------------------------------------------------------------------------
