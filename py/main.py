@@ -14,7 +14,6 @@ import numpy as np
 # GUI Definitions
 WND_TITLE = 'VexTris'
 GOLDEN_RATIO = 2.
-FPS_RATE = 30
 # Dimensions
 FIELD_WIDTH = 320
 FIELD_HEIGHT = FIELD_WIDTH*GOLDEN_RATIO
@@ -159,7 +158,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         # for coordinate conversion in a more natural way
         self.colmap = np.zeros((self.hex_num, self.hex_num_vert, 3))
 
-        self.colmap[:,0] = (0,0,0.6)
+        self.colmap[:,0] = HEXGRID_COL
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
 
 
@@ -211,7 +210,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glEnd()
 
         # Draw the hexagon grid
-        GL.glColor3f(0.2,0.2,0.2)
+        GL.glColor3f(*HEXGRID_COL)
         for i in xrange(self.hex_num):
             for j in xrange(self.hex_num_vert):
                 # Coordinates for r must be corrected due to romboidal
@@ -241,7 +240,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glViewport((width - side) / 2, (height - side) / 2, side, side)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        ortho_height = GOLDEN_RATIO*0.5
         GL.glOrtho(0, 1.0, 0, GOLDEN_RATIO, -1.0, 1.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glViewport(0,0,width,height)
