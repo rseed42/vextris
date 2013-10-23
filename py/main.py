@@ -86,11 +86,10 @@ KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
           QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
           QtCore.Qt.Key_9:9}
 #-------------------------------------------------------------------------------
-# Use a matrix
 def hex2pix(q,r, radius, offset):
     """ Hexagons are in an even-q vertical layout
     """
-    x = radius * 1.5 * q
+    x = radius * 1.5 * q + 0.5*radius
     y = radius * SQRT3 * (r - 0.5*(q&1))
     return np.array([x,y]) + offset
 #-------------------------------------------------------------------------------
