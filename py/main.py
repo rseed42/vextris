@@ -80,7 +80,8 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
                          [0,6,4,3],],dtype=np.int64))
 #-------------------------------------------------------------------------------
 # Dynamics
-SPEED = 0.05
+# Rows/sec
+SPEED = 1.
 #KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
 #          QtCore.Qt.Key_3:3, QtCore.Qt.Key_4:4, QtCore.Qt.Key_5:5,
 #          QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
@@ -127,6 +128,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         super(GLWidget, self).__init__(parent)
         self.lastPos = QtCore.QPoint()
         self.setFixedSize(*FIELD_SIZE)
+        self.speed = SPEED
 
         # ---------- RECODE ----------
         self.hex_num = 13
@@ -165,6 +167,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Piece
         self.piece = Piece(np.random.randint(10), self.center)
         self.update_game()
+
+        # Start timer
+        self.timer = QtCore.QBasicTimer()
+
+    def timerEvent(self, e):
+        print 'timer'
 
 
     def initializeGL(self):
@@ -269,6 +277,17 @@ class GLWidget(QtOpenGL.QGLWidget):
             pass
         elif key == QtCore.Qt.Key_Q:
             QtGui.qApp.quit()
+
+        elif key == QtCore.Qt.Key_N:
+            # Start game
+            self.timer.start(1000./self.speed, self)
+
+        elif key == QtCore.Qt.Key_P:
+            # Pause game
+            if self.timer.isActive():
+                self.timer.stop()
+            else:
+                self.timer.start(1000./self.speed, self)
 
         self.update_game()
         self.repaint()
