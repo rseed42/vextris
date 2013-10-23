@@ -81,10 +81,6 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
 # Dynamics
 # Rows/sec
 SPEED = 2.
-#KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
-#          QtCore.Qt.Key_3:3, QtCore.Qt.Key_4:4, QtCore.Qt.Key_5:5,
-#          QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
-#          QtCore.Qt.Key_9:9}
 #-------------------------------------------------------------------------------
 def hex2pix(q,r, radius):
     """ Hexagons are in an even-q vertical layout
@@ -193,7 +189,6 @@ class GLWidget(QtOpenGL.QGLWidget):
             for j in xrange(self.hex_num_vert):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-#                pos = hex2pix(i,j, self.hex_radius, self.offset)
                 pos = hex2pix(i,j, self.hex_radius)
                 GL.glBegin(GL.GL_TRIANGLE_FAN)
                 col = self.colmap[i, j]
@@ -211,7 +206,6 @@ class GLWidget(QtOpenGL.QGLWidget):
             for j in xrange(self.hex_num_vert):
                 # Coordinates for r must be corrected due to romboidal
                 # (non-perpendicular angle between the axes) shape.
-#                pos = hex2pix(i,j, self.hex_radius, self.offset)
                 pos = hex2pix(i,j, self.hex_radius)
                 GL.glBegin(GL.GL_LINE_STRIP)
                 hex = self.hexagon + pos
@@ -270,9 +264,6 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         elif key == QtCore.Qt.Key_Up:
             self.piece.rotate_right()
-
-#        elif key in KEYMAP:
-#            self.piece = Piece(KEYMAP[key], self.piece.pos)
 
         elif key == QtCore.Qt.Key_Space:
             pass
