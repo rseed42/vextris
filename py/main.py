@@ -34,6 +34,7 @@ CYAN = np.array([0,0.8,0.8])
 YELLOW = np.array([0.8,0.8,0])
 PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
 HEXGRID_COL = np.array([0.2,0.2,0.2])
+BGCOL = BLACK
 #-------------------------------------------------------------------------------
 # Math
 DEG60 = np.pi/3
@@ -80,7 +81,7 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
 #-------------------------------------------------------------------------------
 # Dynamics
 # Rows/sec
-SPEED = 2.
+SPEED = 3.
 #-------------------------------------------------------------------------------
 def hex2pix(q,r, radius):
     """ Hexagons are in an even-q vertical layout
@@ -124,8 +125,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.lastPos = QtCore.QPoint()
         self.setFixedSize(*FIELD_SIZE)
         self.speed = SPEED
-
-        # ---------- RECODE ----------
         self.hex_num = 13
         # Maybe should make sure the result is an integer
         self.half_hex_num = self.hex_num/2
@@ -138,7 +137,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
                                dtype=np.int64)
         self.top = np.array([self.hex_num/2,self.hex_num_vert-2],dtype=np.int64)
-
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
             angle = i*DEG60
@@ -148,32 +146,19 @@ class GLWidget(QtOpenGL.QGLWidget):
         # The hexmap is a width x height matrix so that it can be
         # for coordinate conversion in a more natural way
         self.colmap = np.zeros((self.hex_num, self.hex_num_vert, 3))
-
         self.colmap[:,0] = HEXGRID_COL
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
-
-
         self.hexlist = np.array([[1,-1],])
         self.hexpos = np.array([4,8])
-
         # Piece
         self.piece = Piece(np.random.randint(10), self.top)
-        self.update_game()
-
+        self.rasterize_piece()
         # Start timer
         self.timer = QtCore.QBasicTimer()
 
-    def timerEvent(self, e):
-        if self.piece:
-            self.erase_piece()
-            self.piece.pos[1] -= 1
-
-        self.update_game()
-        self.repaint()
-
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
-        GL.glClearColor(0.0,0.0,0.0,0.0)
+        GL.glClearColor(BGCOL[0], BGCOL[1], BGCOL[2], 0)
         GL.glClearDepth(1.0)
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glDepthFunc(GL.GL_LEQUAL)
@@ -215,13 +200,21 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
 
-    def update_game(self):
+    def timerEvent(self, e):
+        if self.piece and self.timer.isActive():
+            self.erase_piece()
+            self.piece.pos[1] -= 1
+
+        self.rasterize_piece()
+        self.repaint()
+
+    def rasterize_piece(self):
         for h in self.piece.hexagons():
             self.colmap[h[0],h[1]] = self.piece.color
 
     def erase_piece(self):
         for h in self.piece.hexagons():
-            self.colmap[h[0],h[1]] = (0,0,0)
+            self.colmap[h[0],h[1]] = BGCOL
 
     def resizeGL(self, width, height):
         side = min(width, height)
@@ -281,7 +274,7 @@ class GLWidget(QtOpenGL.QGLWidget):
             else:
                 self.timer.start(1000./self.speed, self)
 
-        self.update_game()
+        self.rasterize_piece()
         self.repaint()
 #-------------------------------------------------------------------------------
 # Window
