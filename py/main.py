@@ -45,8 +45,8 @@ HEIGHT_COEFF = 0.5*SQRT3
 # the pos variable in a piece. Due to position-dependent distance
 # on the hex grid, we need to calculate their relative position
 # when the center of the piece changes its location.
-# The neighbors are enumerated from 0 (top neighbor) to 5 on the
-# inner circle and 6 (second top neighbor) to 17 on the second one.
+# The neighbors are enumerated from 1 (top neighbor) to 6 on the
+# inner circle and 7 (second top neighbor) to 18 on the second one.
 # The locations depending on odd/even location of the center are
 # defined in an array for the odd and even situation.
 
@@ -81,10 +81,10 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
 #-------------------------------------------------------------------------------
 # Dynamics
 SPEED = 0.05
-KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
-          QtCore.Qt.Key_3:3, QtCore.Qt.Key_4:4, QtCore.Qt.Key_5:5,
-          QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
-          QtCore.Qt.Key_9:9}
+#KEYMAP = {QtCore.Qt.Key_0:0, QtCore.Qt.Key_1:1, QtCore.Qt.Key_2:2,
+#          QtCore.Qt.Key_3:3, QtCore.Qt.Key_4:4, QtCore.Qt.Key_5:5,
+#          QtCore.Qt.Key_6:6, QtCore.Qt.Key_7:7, QtCore.Qt.Key_8:8,
+#          QtCore.Qt.Key_9:9}
 #-------------------------------------------------------------------------------
 def hex2pix(q,r, radius, offset):
     """ Hexagons are in an even-q vertical layout
@@ -250,25 +250,20 @@ class GLWidget(QtOpenGL.QGLWidget):
                 self.piece.pos[0] -= 1
 
         elif key == QtCore.Qt.Key_Right:
+
             if self.piece.hexagons()[:,0].max() < self.hex_num-1:
                 self.piece.pos[0] += 1
 
         elif key == QtCore.Qt.Key_Down:
-            if self.piece.hexagons()[:,1].min() > 1:
-                self.piece.pos[1] -= 1
-
-        elif key == QtCore.Qt.Key_Up:
-            if self.piece.hexagons()[:,1].max() < self.hex_num_vert-1:
-                self.piece.pos[1] += 1
-
-        elif key == QtCore.Qt.Key_R:
-            self.piece.rotate_right()
-
-        elif key == QtCore.Qt.Key_L:
+            # Need to check for rotations (maybe implement move, rot
+            # functions in the piece
             self.piece.rotate_left()
 
-        elif key in KEYMAP:
-            self.piece = Piece(KEYMAP[key], self.piece.pos)
+        elif key == QtCore.Qt.Key_Up:
+            self.piece.rotate_right()
+
+#        elif key in KEYMAP:
+#            self.piece = Piece(KEYMAP[key], self.piece.pos)
 
         elif key == QtCore.Qt.Key_Space:
             pass
