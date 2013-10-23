@@ -148,8 +148,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.colmap = np.zeros((self.hex_num, self.hex_num_vert, 3))
         self.colmap[:,0] = HEXGRID_COL
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert))
-        self.hexlist = np.array([[1,-1],])
-        self.hexpos = np.array([4,8])
+        self.hexmap[:,0] = 1
         # Piece
         self.piece = Piece(np.random.randint(10), self.top)
         self.rasterize_piece()
