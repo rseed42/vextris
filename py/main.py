@@ -21,19 +21,20 @@ FIELD_SIZE = np.array([FIELD_WIDTH, FIELD_HEIGHT])
 #-------------------------------------------------------------------------------
 # Colors
 BLACK = np.zeros(3)
-GREY = np.array([0.5,0.5,0.5])
+GREY = np.array([0.18,0.18,0.18])
 WHITE = np.ones(3)
-RED = np.array([0.8,0,0])
-GREEN = np.array([0,0.8,0])
-BLUE = np.array([0, 0,0.8])
-MAGENTA = np.array([0.5,0,0.5])
-ORANGE = np.array([0.5,0.5,0])
-VIOLETT = np.array([0.5,0.13,0.7])
-DARK_CYAN = np.array([0,0.5,0.5])
-CYAN = np.array([0,0.8,0.8])
-YELLOW = np.array([0.8,0.8,0])
-PIECE_COLS = [ORANGE,BLUE,VIOLETT,GREEN,MAGENTA,DARK_CYAN,YELLOW,RED,CYAN,GREY]
-HEXGRID_COL = np.array([0.2,0.2,0.2])
+RED = np.array([1.0,0,0])
+GREEN = np.array([0,1.0,0])
+BLUE = np.array([0,0,1.0])
+MAGENTA = np.array([1.0,0,1.0])
+ORANGE = np.array([1.0,0.5,0])
+PURPLE = np.array([0.63,0.12,0.94])
+LBLUE = np.array([0.68,0.85,0.9])
+CYAN = np.array([0,1.0,1.0])
+YELLOW = np.array([1.0,1.0,0])
+PIECE_COLS = [ORANGE,BLUE,PURPLE,GREEN,MAGENTA,CYAN,YELLOW,RED,LBLUE,GREY]
+# blue,yellow,red,orange,green,purple,cyan,gray45,magenta,lightblue
+HEXGRID_COL = np.array([0.1,0.1,0.1])
 BGCOL = BLACK
 #-------------------------------------------------------------------------------
 # Math
@@ -162,7 +163,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.colmap = np.zeros((self.hex_num, self.hex_num_vert+4, 3))
         self.colmap[:,0] = HEXGRID_COL
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert+4))
-        print self.hexmap.shape
         self.hexmap[:,0] = 1
         self.timer = QtCore.QBasicTimer()
         self.piece = None
