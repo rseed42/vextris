@@ -119,6 +119,13 @@ class Piece(object):
         self.pos[0] = int(np.floor(self.height))
 
     def collision(self, newpos, hexmap):
+        # Piece collides with left border
+        if self.hexagons(newpos)[:,0].min() < 0:
+            return True
+        # Piece collides with right border
+        if self.hexagons(newpos)[:,0].max() > hexmap.shape[0]-1:
+            return True
+        # Piece collides with the piece heap
         for hexpos in self.hexagons(newpos):
             if hexmap[hexpos[0],hexpos[1]]: return True
         return False
@@ -155,6 +162,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.colmap = np.zeros((self.hex_num, self.hex_num_vert+4, 3))
         self.colmap[:,0] = HEXGRID_COL
         self.hexmap = np.zeros((self.hex_num, self.hex_num_vert+4))
+        print self.hexmap.shape
         self.hexmap[:,0] = 1
         self.timer = QtCore.QBasicTimer()
         self.piece = None
@@ -289,17 +297,23 @@ class GLWidget(QtOpenGL.QGLWidget):
         if not self.timer.isActive(): return
         self.erase_piece()
         if key == QtCore.Qt.Key_Left:
-            if self.piece.hexagons()[:,0].min() > 0:
-                self.piece.pos[0] -= 1
+            newpos = self.piece.pos + np.array([-1,0])
+            if not self.piece.collision(newpos, self.hexmap):
+                self.piece.pos = newpos
         elif key == QtCore.Qt.Key_Right:
-            if self.piece.hexagons()[:,0].max() < self.hex_num-1:
-                self.piece.pos[0] += 1
+            newpos = self.piece.pos + np.array([1,0])
+            if not self.piece.collision(newpos, self.hexmap):
+                self.piece.pos = newpos
         elif key == QtCore.Qt.Key_Down:
             # Need to check for rotations (maybe implement move, rot
             # functions in the piece
             self.piece.rotate_left()
+            if self.piece.collision(self.piece.pos, self.hexmap):
+                self.piece.rotate_right()
         elif key == QtCore.Qt.Key_Up:
             self.piece.rotate_right()
+            if self.piece.collision(self.piece.pos, self.hexmap):
+                self.piece.rotate_left()
         elif key == QtCore.Qt.Key_Space:
             pass
         self.rasterize_piece()
