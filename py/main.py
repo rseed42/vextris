@@ -221,6 +221,33 @@ class GLWidget(QtOpenGL.QGLWidget):
     def timerEvent(self, e):
         if not self.piece and not self.timer.isActive(): return
         self.erase_piece()
+
+        if self.piece.collision(self.piece.pos, self.hexmap):
+            # Must check where the piece came from
+            check_pos = self.piece.pos.copy()
+            # Piece came from above
+            check_pos[1] -= 1
+            if not self.piece.collision(check_pos, self.hexmap):
+                self.piece.pos = check_pos
+                self.rasterize_piece()
+                self.repaint()
+                return
+            check_pos[1] += 1
+            # Piece came from left
+            check_pos[0] -= 1
+            if not self.piece.collision(check_pos, self.hexmap):
+                self.piece.pos = check_pos
+                self.rasterize_piece()
+                self.repaint()
+                return
+            check_pos[0] += 2
+            if not self.piece.collision(check_pos, self.hexmap):
+                self.piece.pos = check_pos
+                self.rasterize_piece()
+                self.repaint()
+                return
+
+
         # Look ahead first
         newpos = self.piece.pos + np.array([0,-1])
         if self.piece.collision(newpos, self.hexmap):
@@ -296,7 +323,7 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         if not self.timer.isActive(): return
         self.erase_piece()
-        self.timer.stop()
+#        self.timer.stop()
         if key == QtCore.Qt.Key_Left:
             newpos = self.piece.pos + np.array([-1,0])
             if not self.piece.collision(newpos, self.hexmap):
@@ -323,7 +350,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Rasterize
         self.rasterize_piece()
         self.repaint()
-        self.timer.start(1000./self.speed, self)
+#        self.timer.start(1000./self.speed, self)
 #-------------------------------------------------------------------------------
 # Window
 #-------------------------------------------------------------------------------
