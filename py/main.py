@@ -296,6 +296,7 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         if not self.timer.isActive(): return
         self.erase_piece()
+        self.timer.stop()
         if key == QtCore.Qt.Key_Left:
             newpos = self.piece.pos + np.array([-1,0])
             if not self.piece.collision(newpos, self.hexmap):
@@ -315,9 +316,14 @@ class GLWidget(QtOpenGL.QGLWidget):
             if self.piece.collision(self.piece.pos, self.hexmap):
                 self.piece.rotate_left()
         elif key == QtCore.Qt.Key_Space:
-            pass
+           while not self.piece.collision(self.piece.pos, self.hexmap):
+                self.piece.pos[1] -= 1
+           self.piece.pos[1] += 1
+
+        # Rasterize
         self.rasterize_piece()
         self.repaint()
+        self.timer.start(1000./self.speed, self)
 #-------------------------------------------------------------------------------
 # Window
 #-------------------------------------------------------------------------------
