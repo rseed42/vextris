@@ -224,6 +224,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.timer.start(1000./self.speed, self)
         self.score = 0
 
+    def pause_game(self):
+        if self.timer.isActive():
+            self.timer.stop()
+        elif self.piece:
+            self.timer.start(1000./self.speed, self)
+
     def timerEvent(self, e):
         if not self.piece and not self.timer.isActive(): return
         self.erase_piece()
@@ -324,10 +330,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         elif key == QtCore.Qt.Key_N:
             self.new_game()
         elif key == QtCore.Qt.Key_P:
-            if self.timer.isActive():
-                self.timer.stop()
-            elif self.piece:
-                self.timer.start(1000./self.speed, self)
+            self.pause_game()
 
         if not self.timer.isActive(): return
         self.erase_piece()
@@ -373,6 +376,31 @@ class Window(QtGui.QMainWindow):
         # Status bar
         self.status_bar = self.statusBar()
         self.status_bar.showMessage('VexTris')
+        # Menu
+        self.menu_bar = self.menuBar()
+        self.create_menus()
+
+    def create_menus(self):
+        fileMenu = self.menu_bar.addMenu('&Game')
+
+        newAction = QtGui.QAction('&New', self)
+        newAction.setShortcut('Ctrl+N')
+        newAction.setStatusTip('New Game')
+        newAction.triggered.connect(self.glWidget.new_game)
+
+        pauseAction = QtGui.QAction('&Pause', self)
+        pauseAction.setShortcut('Ctrl+P')
+        pauseAction.setStatusTip('Pause Game')
+        pauseAction.triggered.connect(self.glWidget.pause_game)
+
+        quitAction = QtGui.QAction('&Quit', self)
+        quitAction.setShortcut('Ctrl+Q')
+        quitAction.setStatusTip('Quit Game')
+        quitAction.triggered.connect(QtGui.qApp.quit)
+
+        fileMenu.addAction(newAction)
+        fileMenu.addAction(pauseAction)
+        fileMenu.addAction(quitAction)
 
 #-------------------------------------------------------------------------------
 # Main
