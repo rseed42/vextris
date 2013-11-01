@@ -166,6 +166,10 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexmap[:,0] = 1
         self.timer = QtCore.QBasicTimer()
         self.piece = None
+        # Status bar
+#        self.status_bar = self.statusBar()
+#        self.status_bar.showMessage('VexTris')
+#        self.score = 0
 
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
@@ -354,13 +358,12 @@ class GLWidget(QtOpenGL.QGLWidget):
 #-------------------------------------------------------------------------------
 # Window
 #-------------------------------------------------------------------------------
-class Window(QtGui.QWidget):
+#class Window(QtGui.QWidget):
+class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
         self.glWidget = GLWidget()
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.glWidget)
-        self.setLayout(layout)
+        self.setCentralWidget(self.glWidget)
         self.setWindowTitle("PyQt4 OpenGL Template")
         self.glWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
 #-------------------------------------------------------------------------------
