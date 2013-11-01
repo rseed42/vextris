@@ -166,10 +166,10 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexmap[:,0] = 1
         self.timer = QtCore.QBasicTimer()
         self.piece = None
-        # Status bar
-#        self.status_bar = self.statusBar()
-#        self.status_bar.showMessage('VexTris')
-#        self.score = 0
+        self.score = 0
+
+    def status_message(self, s):
+        self.parent().status_bar.showMessage(s)
 
     def initializeGL(self):
         GL.glShadeModel(GL.GL_SMOOTH)
@@ -216,11 +216,13 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glEnd()
 
     def new_game(self):
+        self.status_message('New Game')
         self.colmap[:,1:] = BGCOL
         self.hexmap[:,1:] = 0
         self.piece = Piece(np.random.randint(10), self.top.copy())
         self.rasterize_piece()
         self.timer.start(1000./self.speed, self)
+        self.score = 0
 
     def timerEvent(self, e):
         if not self.piece and not self.timer.isActive(): return
@@ -258,7 +260,7 @@ class GLWidget(QtOpenGL.QGLWidget):
             # Check wether the current piece touches the top (game over)
             hexagons = self.piece.hexagons()
             if self.hex_num_vert-1 in hexagons[:,1]:
-                print 'Game Over'
+                self.status_message('Game Over')
                 self.timer.stop()
             # Take care of the current piece
             for hexpos in hexagons:
@@ -268,6 +270,8 @@ class GLWidget(QtOpenGL.QGLWidget):
             i = 1
             while i < self.hex_num_vert:
                 if self.hexmap[:,i].sum() == self.hex_num:
+                    self.score += 1
+                    self.status_message('Score: {0}'.format(self.score))
                     # Pull down all the rows above i
                     for j in xrange(i, self.hex_num_vert-1):
                         for k in xrange(self.hex_num):
@@ -366,6 +370,10 @@ class Window(QtGui.QMainWindow):
         self.setCentralWidget(self.glWidget)
         self.setWindowTitle("PyQt4 OpenGL Template")
         self.glWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
+        # Status bar
+        self.status_bar = self.statusBar()
+        self.status_bar.showMessage('VexTris')
+
 #-------------------------------------------------------------------------------
 # Main
 #-------------------------------------------------------------------------------
