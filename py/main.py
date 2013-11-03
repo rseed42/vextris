@@ -82,7 +82,7 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
 #-------------------------------------------------------------------------------
 # Dynamics
 # Rows/sec
-SPEED = 6.
+SPEED = 4.
 #-------------------------------------------------------------------------------
 def hex2pix(q,r, radius):
     """ Hexagons are in an even-q vertical layout
@@ -103,32 +103,84 @@ class Piece(object):
         self.color = color
         if not self.color:
             self.color = PIECE_COLS[self.type_id]
-
-    def hexagons(self, pos=None):
-        if pos == None: pos = self.pos
         neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][self.rot_id]]
-        return neighbors + pos
+        self.hexagons = neighbors + self.pos
 
-    def rotate_left(self):
-        self.rot_id = (self.rot_id - 1) % len(SHAPES[self.type_id])
+#    def hexagons(self, pos=None):
+#        if pos == None: pos = self.pos
+#        neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][self.rot_id]]
+#        return neighbors + pos
 
-    def rotate_right(self):
-        self.rot_id = (self.rot_id + 1) % len(SHAPES[self.type_id])
+    def rotate(self, left_right, hexmap):
+        """ left: -1, right: +1 """
+        rot_id = (self.rot_id + left_right) % len(SHAPES[self.type_id])
+        neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][rot_id]]
+        hexagons = neighbors + self.pos
+        if self.collision(hexagons, hexmap):
+            print left_right, 'rot collision'
+            return False
+        self.rot_id = rot_id
+        self.hexagons = hexagons
+        return True
 
-    def fall(self, speed):
-        self.height += speed
-        self.pos[0] = int(np.floor(self.height))
+    def rotate_left(self, hexmap):
+        return self.rotate(-1, hexmap)
 
-    def collision(self, newpos, hexmap):
+    def rotate_right(self, hexmap):
+        return self.rotate(1, hexmap)
+
+    def move(self, left_right, hexmap, vert=0):
+        """ left: -1, right: +1 """
+        # Have to select neighbors due to hex coordinates dependencies
+        pos = self.pos + np.array([left_right, vert])
+        neighbors = NLOC[pos[0]&1][SHAPES[self.type_id][self.rot_id]]
+        hexagons = neighbors + pos
+        if self.collision(hexagons, hexmap):
+            print left_right, 'trans collision'
+            return False
+        self.pos = pos
+        self.hexagons = hexagons
+        return True
+
+    def move_left(self, hexmap):
+        return self.move(-1, hexmap)
+
+    def move_down_left(self, hexmap):
+        return self.move(-1, hexmap, vert=-1)
+
+    def move_right(self, hexmap):
+        return self.move(1, hexmap)
+
+    def move_down_right(self, hexmap):
+        return self.move(1, hexmap, vert=-1)
+
+
+    def fall(self, hexmap):
+        # Have to select neighbors due to hex coordinates dependencies
+        pos = self.pos + np.array([0, -1])
+        neighbors = NLOC[pos[0]&1][SHAPES[self.type_id][self.rot_id]]
+        hexagons = neighbors + pos
+        if self.collision(hexagons, hexmap):
+#            print 'fall collision'
+            return False
+        self.pos = pos
+        self.hexagons = hexagons
+        return True
+
+#    def fall(self, speed):
+#        self.height += speed
+#        self.pos[0] = int(np.floor(self.height))
+#
+    def collision(self, hexagons, hexmap):
         # Piece collides with left border
-        if self.hexagons(newpos)[:,0].min() < 0:
+        if hexagons[:,0].min() < 0:
             return True
         # Piece collides with right border
-        if self.hexagons(newpos)[:,0].max() > hexmap.shape[0]-1:
+        if hexagons[:,0].max() > hexmap.shape[0]-1:
             return True
         # Piece collides with the piece heap
-        for hexpos in self.hexagons(newpos):
-            if hexmap[hexpos[0],hexpos[1]]: return True
+        for (i,j) in hexagons:
+            if hexmap[i,j]: return True
         return False
 
 #-------------------------------------------------------------------------------
@@ -137,7 +189,6 @@ class Piece(object):
 class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
-        self.lastPos = QtCore.QPoint()
         self.setFixedSize(*FIELD_SIZE)
         self.speed = SPEED
         self.hex_num = 13
@@ -151,7 +202,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Offset vertically by the empty space due to imprecise number of hexes
         self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
                                dtype=np.int64)
-        self.top = np.array([self.hex_num/2,self.hex_num_vert+2],dtype=np.int64)
+        self.top = np.array([self.hex_num/2,self.hex_num_vert],dtype=np.int64)
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
             angle = i*DEG60
@@ -200,6 +251,19 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
 
+        # Draw piece
+        if self.piece:
+            GL.glColor3f(*self.piece.color)
+            for (i,j) in self.piece.hexagons:
+                pos = hex2pix(i, j, self.hex_radius)
+                GL.glBegin(GL.GL_TRIANGLE_FAN)
+                hex = self.hexagon + pos
+                for v in hex:
+                    GL.glVertex3f(v[0], v[1], 0)
+                v = hex[0]
+                GL.glVertex3f(v[0], v[1], 0)
+                GL.glEnd()
+
         # Draw the hexagon grid
         GL.glColor3f(*HEXGRID_COL)
         for i in xrange(self.hex_num):
@@ -216,11 +280,12 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glEnd()
 
     def new_game(self):
+        pass
         self.status_message('New Game')
         self.colmap[:,1:] = BGCOL
         self.hexmap[:,1:] = 0
         self.piece = Piece(np.random.randint(10), self.top.copy())
-        self.rasterize_piece()
+        self.repaint()
         self.timer.start(1000./self.speed, self)
         self.score = 0
 
@@ -232,73 +297,35 @@ class GLWidget(QtOpenGL.QGLWidget):
 
     def timerEvent(self, e):
         if not self.piece and not self.timer.isActive(): return
-        self.erase_piece()
-
-        if self.piece.collision(self.piece.pos, self.hexmap):
-            # Must check where the piece came from
-            check_pos = self.piece.pos.copy()
-            # Piece came from above
-            check_pos[1] -= 1
-            if not self.piece.collision(check_pos, self.hexmap):
-                self.piece.pos = check_pos
-                self.rasterize_piece()
-                self.repaint()
-                return
-            check_pos[1] += 1
-            # Piece came from left
-            check_pos[0] -= 1
-            if not self.piece.collision(check_pos, self.hexmap):
-                self.piece.pos = check_pos
-                self.rasterize_piece()
-                self.repaint()
-                return
-            check_pos[0] += 2
-            if not self.piece.collision(check_pos, self.hexmap):
-                self.piece.pos = check_pos
-                self.rasterize_piece()
-                self.repaint()
-                return
-
-        # Look ahead first
-        newpos = self.piece.pos + np.array([0,-1])
-        if self.piece.collision(newpos, self.hexmap):
-            # Check wether the current piece touches the top (game over)
-            hexagons = self.piece.hexagons()
-            if self.hex_num_vert-1 in hexagons[:,1]:
-                self.status_message('Game Over')
-                self.timer.stop()
-            # Take care of the current piece
-            for hexpos in hexagons:
-                self.hexmap[hexpos[0],hexpos[1]] = 1
-            self.rasterize_piece()
-            # Scan for full lines
-            i = 1
-            while i < self.hex_num_vert:
-                if self.hexmap[:,i].sum() == self.hex_num:
-                    self.score += 1
-                    self.status_message('Score: {0}'.format(self.score))
-                    # Pull down all the rows above i
-                    for j in xrange(i, self.hex_num_vert-1):
-                        for k in xrange(self.hex_num):
-                            self.colmap[k,j] = self.colmap[k,j+1]
-                            self.hexmap[k,j] = self.hexmap[k,j+1]
-                i += 1
-
-            # Generate a new piece
-            self.piece = Piece(np.random.randint(10), self.top.copy())
-        else:
-            self.piece.pos[1] -= 1
-
-        self.rasterize_piece()
+        # Check for collision
+        if self.piece.fall(self.hexmap):
+            self.repaint()
+            return
+        # Fill in the grid with current piece
+        for (i,j) in self.piece.hexagons:
+            self.hexmap[i,j] = 1
+            self.colmap[i,j] = self.piece.color
+        # Check if game is over
+        if self.hex_num_vert-1 in self.piece.hexagons[:,1]:
+            self.status_message('Game Over')
+            self.timer.stop()
+            self.repaint()
+            return
+        # Scan for complete lines, starting one above the ground
+        i = 1
+        while i < self.hex_num_vert:
+            if self.hexmap[:,i].sum() == self.hex_num:
+                self.score += 1
+                self.status_message('Score: {0}'.format(self.score))
+                # Pull down all the rows above i
+                for j in xrange(i, self.hex_num_vert-1):
+                    for k in xrange(self.hex_num):
+                        self.colmap[k,j] = self.colmap[k,j+1]
+                        self.hexmap[k,j] = self.hexmap[k,j+1]
+            i += 1
+        # Generate new piece
+        self.piece = Piece(np.random.randint(10), self.top.copy())
         self.repaint()
-
-    def rasterize_piece(self):
-        for h in self.piece.hexagons():
-            self.colmap[h[0],h[1]] = self.piece.color
-
-    def erase_piece(self):
-        for h in self.piece.hexagons():
-            self.colmap[h[0],h[1]] = BGCOL
 
     def resizeGL(self, width, height):
         side = min(width, height)
@@ -312,16 +339,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glViewport(0,0,width,height)
 
-    def mousePressEvent(self, event):
-        self.lastPos = event.pos()
-
-    def mouseMoveEvent(self, event):
-        if event.buttons() & QtCore.Qt.LeftButton:
-            pass
-        elif event.buttons() & QtCore.Qt.RightButton:
-            pass
-        self.lastPos = event.pos()
-
     def keyPressEvent(self, event):
         key = event.key()
         if key == QtCore.Qt.Key_Q:
@@ -332,33 +349,50 @@ class GLWidget(QtOpenGL.QGLWidget):
             self.pause_game()
 
         if not self.timer.isActive(): return
-        self.erase_piece()
         if key == QtCore.Qt.Key_Left:
-            newpos = self.piece.pos + np.array([-1,0])
-            if not self.piece.collision(newpos, self.hexmap):
-                self.piece.pos = newpos
-        elif key == QtCore.Qt.Key_Right:
-            newpos = self.piece.pos + np.array([1,0])
-            if not self.piece.collision(newpos, self.hexmap):
-                self.piece.pos = newpos
-        elif key == QtCore.Qt.Key_Down:
-            # Need to check for rotations (maybe implement move, rot
-            # functions in the piece
-            self.piece.rotate_left()
-            if self.piece.collision(self.piece.pos, self.hexmap):
-                self.piece.rotate_right()
-        elif key == QtCore.Qt.Key_Up:
-            self.piece.rotate_right()
-            if self.piece.collision(self.piece.pos, self.hexmap):
-                self.piece.rotate_left()
-        elif key == QtCore.Qt.Key_Space:
-           while not self.piece.collision(self.piece.pos, self.hexmap):
-                self.piece.pos[1] -= 1
-           self.piece.pos[1] += 1
+            print 'move left'
+            if self.piece.move_left(self.hexmap):
+                self.repaint()
+#            if not self.piece.move_left(self.hexmap):
+#                if self.piece.move_down_left(self.hexmap):
+#                    self.repaint()
+#            else:
+#                self.repaint()
 
-        # Rasterize
-        self.rasterize_piece()
-        self.repaint()
+        elif key == QtCore.Qt.Key_Right:
+            print 'move right'
+            if self.piece.move_right(self.hexmap):
+                self.repaint()
+#
+#            if self.piece.move_right(self.hexmap):
+#                if self.piece.move_down_right(self.hexmap):
+#                    self.repaint()
+#            else:
+#                self.repaint()
+
+        elif key == QtCore.Qt.Key_Down:
+            if self.piece.rotate_left(self.hexmap):
+                self.repaint()
+
+        elif key == QtCore.Qt.Key_Up:
+            if self.piece.rotate_right(self.hexmap):
+                self.repaint()
+
+#        elif key == QtCore.Qt.Key_F:
+#            if self.piece.fall(self.hexmap):
+#                self.repaint()
+#            else:
+#                for (i,j) in self.piece.hexagons:
+#                    self.hexmap[i,j] = 1
+#                    self.colmap[i,j] = self.piece.color
+#                self.piece = Piece(np.random.randint(10), self.top.copy())
+#            self.repaint()
+
+        elif key == QtCore.Qt.Key_Space:
+           while self.piece.fall(self.hexmap):
+               pass
+           self.repaint()
+
 #-------------------------------------------------------------------------------
 # Window
 #-------------------------------------------------------------------------------
