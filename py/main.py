@@ -15,7 +15,7 @@ import numpy as np
 WND_TITLE = 'VexTris'
 GOLDEN_RATIO = 2.
 # Dimensions
-FIELD_WIDTH = 320
+FIELD_WIDTH = 300
 FIELD_HEIGHT = FIELD_WIDTH*GOLDEN_RATIO
 FIELD_SIZE = np.array([FIELD_WIDTH, FIELD_HEIGHT])
 #-------------------------------------------------------------------------------
