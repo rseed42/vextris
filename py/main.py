@@ -103,19 +103,16 @@ class Piece(object):
         self.color = color
         if not self.color:
             self.color = PIECE_COLS[self.type_id]
-        neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][self.rot_id]]
-        self.hexagons = neighbors + self.pos
+        self.hexagons = self.get_hexagons(pos, rot_id)
 
-#    def hexagons(self, pos=None):
-#        if pos == None: pos = self.pos
-#        neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][self.rot_id]]
-#        return neighbors + pos
+    def get_hexagons(self, pos, rot_id):
+        neighbors = NLOC[pos[0]&1][SHAPES[self.type_id][rot_id]]
+        return neighbors + pos
 
     def rotate(self, left_right, hexmap):
         """ left: -1, right: +1 """
         rot_id = (self.rot_id + left_right) % len(SHAPES[self.type_id])
-        neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][rot_id]]
-        hexagons = neighbors + self.pos
+        hexagons = self.get_hexagons(self.pos, rot_id)
         if self.collision(hexagons, hexmap):
             return False
         self.rot_id = rot_id
@@ -132,8 +129,7 @@ class Piece(object):
         """ left: -1, right: +1 """
         # Have to select neighbors due to hex coordinates dependencies
         pos = self.pos + np.array([left_right, vert])
-        neighbors = NLOC[pos[0]&1][SHAPES[self.type_id][self.rot_id]]
-        hexagons = neighbors + pos
+        hexagons = self.get_hexagons(pos, self.rot_id)
         coll_code = self.collision(hexagons, hexmap)
         if coll_code:
             return coll_code
