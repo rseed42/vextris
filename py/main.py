@@ -285,7 +285,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glEnd()
 
     def new_game(self):
-        pass
+        self.speed = START_SPEED
         self.status_message('New Game')
         self.colmap[:,1:] = BGCOL
         self.hexmap[:,1:] = 0
@@ -343,7 +343,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.score += lines_mult*rm_lines_count
 
         # Speedup
-        self.speed = rm_lines_count*SPEED_MULT*self.speed
+        self.speed = (SPEED_MULT**rm_lines_count)*self.speed
         self.status_message('Score: {0} | {1:.1f} ms | lines: {2}'.format(
             self.score, self.speed*1000, rm_lines_count))
         self.timer.stop()
