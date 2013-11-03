@@ -259,7 +259,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 self.repaint()
                 return
 
-
         # Look ahead first
         newpos = self.piece.pos + np.array([0,-1])
         if self.piece.collision(newpos, self.hexmap):
