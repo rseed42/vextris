@@ -81,8 +81,12 @@ SHAPES.append( np.array([[0,1,5,4],[0,2,6,5],[0,3,1,6],[0,4,2,1],[0,5,3,2],
                          [0,6,4,3],],dtype=np.int64))
 #-------------------------------------------------------------------------------
 # Dynamics
-# Rows/sec
-SPEED = 4.
+# row / ms
+START_SPEED = 0.4
+# Timeout interval shrinks by SPEED_MULT for each cleaned line
+SPEED_MULT = 0.99
+# Score for a number of simultaneously destroyed lines
+SCORE_TABLE = [100,200,400,800]
 #-------------------------------------------------------------------------------
 def hex2pix(q,r, radius):
     """ Hexagons are in an even-q vertical layout
@@ -180,7 +184,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
         self.setFixedSize(*FIELD_SIZE)
-        self.speed = SPEED
+        self.speed = START_SPEED
         self.hex_num = 13
         # Maybe should make sure the result is an integer
         self.half_hex_num = self.hex_num/2
@@ -287,14 +291,14 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexmap[:,1:] = 0
         self.piece = Piece(np.random.randint(10), self.top.copy())
         self.repaint()
-        self.timer.start(1000./self.speed, self)
+        self.timer.start(self.speed*1000., self)
         self.score = 0
 
     def pause_game(self):
         if self.timer.isActive():
             self.timer.stop()
         elif self.piece:
-            self.timer.start(1000./self.speed, self)
+            self.timer.start(self.speed*1000, self)
 
     def timerEvent(self, e):
         if not self.piece and not self.timer.isActive(): return
@@ -314,19 +318,36 @@ class GLWidget(QtOpenGL.QGLWidget):
             return
         # Scan for complete lines, starting one above the ground
         i = 1
+        rm_lines_count = 0
         while i < self.hex_num_vert:
             if self.hexmap[:,i].sum() == self.hex_num:
-                self.score += 1
-                self.status_message('Score: {0}'.format(self.score))
+                rm_lines_count += 1
                 # Pull down all the rows above i
                 for j in xrange(i, self.hex_num_vert-1):
                     for k in xrange(self.hex_num):
                         self.colmap[k,j] = self.colmap[k,j+1]
                         self.hexmap[k,j] = self.hexmap[k,j+1]
             i += 1
+
         # Generate new piece
         self.piece = Piece(np.random.randint(10), self.top.copy())
         self.repaint()
+
+        # Calculate score & speedup
+        if not rm_lines_count:
+            return
+        # Lookup in table
+        lines_mult = SCORE_TABLE[-1]
+        if rm_lines_count <= len(SCORE_TABLE):
+            lines_mult = SCORE_TABLE[rm_lines_count-1]
+        self.score += lines_mult*rm_lines_count
+
+        # Speedup
+        self.speed = rm_lines_count*SPEED_MULT*self.speed
+        self.status_message('Score: {0} | {1:.1f} ms | lines: {2}'.format(
+            self.score, self.speed*1000, rm_lines_count))
+        self.timer.stop()
+        self.timer.start(self.speed*1000., self)
 
     def resizeGL(self, width, height):
         side = min(width, height)
