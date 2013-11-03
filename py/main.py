@@ -362,7 +362,6 @@ class GLWidget(QtOpenGL.QGLWidget):
 #-------------------------------------------------------------------------------
 # Window
 #-------------------------------------------------------------------------------
-#class Window(QtGui.QWidget):
 class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
