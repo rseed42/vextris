@@ -117,7 +117,6 @@ class Piece(object):
         neighbors = NLOC[self.pos[0]&1][SHAPES[self.type_id][rot_id]]
         hexagons = neighbors + self.pos
         if self.collision(hexagons, hexmap):
-            print left_right, 'rot collision'
             return False
         self.rot_id = rot_id
         self.hexagons = hexagons
@@ -135,12 +134,13 @@ class Piece(object):
         pos = self.pos + np.array([left_right, vert])
         neighbors = NLOC[pos[0]&1][SHAPES[self.type_id][self.rot_id]]
         hexagons = neighbors + pos
-        if self.collision(hexagons, hexmap):
-            print left_right, 'trans collision'
-            return False
+        coll_code = self.collision(hexagons, hexmap)
+        if coll_code:
+            return coll_code
         self.pos = pos
         self.hexagons = hexagons
-        return True
+        # Piece moved (code 0)
+        return 0
 
     def move_left(self, hexmap):
         return self.move(-1, hexmap)
@@ -154,33 +154,27 @@ class Piece(object):
     def move_down_right(self, hexmap):
         return self.move(1, hexmap, vert=-1)
 
-
     def fall(self, hexmap):
         # Have to select neighbors due to hex coordinates dependencies
         pos = self.pos + np.array([0, -1])
         neighbors = NLOC[pos[0]&1][SHAPES[self.type_id][self.rot_id]]
         hexagons = neighbors + pos
         if self.collision(hexagons, hexmap):
-#            print 'fall collision'
             return False
         self.pos = pos
         self.hexagons = hexagons
         return True
 
-#    def fall(self, speed):
-#        self.height += speed
-#        self.pos[0] = int(np.floor(self.height))
-#
     def collision(self, hexagons, hexmap):
         # Piece collides with left border
         if hexagons[:,0].min() < 0:
-            return True
+            return 1
         # Piece collides with right border
         if hexagons[:,0].max() > hexmap.shape[0]-1:
-            return True
+            return 2
         # Piece collides with the piece heap
         for (i,j) in hexagons:
-            if hexmap[i,j]: return True
+            if hexmap[i,j]: return 3
         return False
 
 #-------------------------------------------------------------------------------
@@ -268,8 +262,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glColor3f(*HEXGRID_COL)
         for i in xrange(self.hex_num):
             for j in xrange(self.hex_num_vert+4):
-                # Coordinates for r must be corrected due to romboidal
-                # (non-perpendicular angle between the axes) shape.
                 pos = hex2pix(i,j, self.hex_radius)
                 GL.glBegin(GL.GL_LINE_STRIP)
                 hex = self.hexagon + pos
@@ -278,6 +270,19 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 GL.glVertex3f(v[0], v[1], 0)
                 GL.glEnd()
+
+        # Draw piece border hexagons
+#        if border_piece:
+#            GL.glColor3f(*WHITE)
+#            for (i,j) in border_piece.hexagons:
+#                pos = hex2pix(i,j, self.hex_radius)
+#                GL.glBegin(GL.GL_LINE_STRIP)
+#                hex = self.hexagon + pos
+#                for v in hex:
+#                    GL.glVertex3f(v[0],v[1],0)
+#                v = hex[0]
+#                GL.glVertex3f(v[0], v[1], 0)
+#                GL.glEnd()
 
     def new_game(self):
         pass
@@ -350,25 +355,22 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         if not self.timer.isActive(): return
         if key == QtCore.Qt.Key_Left:
-            print 'move left'
-            if self.piece.move_left(self.hexmap):
+            res = self.piece.move_left(self.hexmap)
+            # Avoid wall collisions
+            if res == 3:
+                if self.piece.move_down_left(self.hexmap) == 0:
+                    self.repaint()
+            elif res == 0:
                 self.repaint()
-#            if not self.piece.move_left(self.hexmap):
-#                if self.piece.move_down_left(self.hexmap):
-#                    self.repaint()
-#            else:
-#                self.repaint()
 
         elif key == QtCore.Qt.Key_Right:
-            print 'move right'
-            if self.piece.move_right(self.hexmap):
+            res = self.piece.move_right(self.hexmap)
+            # Avoid wall collisions
+            if res == 3:
+                if self.piece.move_down_right(self.hexmap) == 0:
+                    self.repaint()
+            elif res == 0:
                 self.repaint()
-#
-#            if self.piece.move_right(self.hexmap):
-#                if self.piece.move_down_right(self.hexmap):
-#                    self.repaint()
-#            else:
-#                self.repaint()
 
         elif key == QtCore.Qt.Key_Down:
             if self.piece.rotate_left(self.hexmap):
@@ -377,16 +379,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         elif key == QtCore.Qt.Key_Up:
             if self.piece.rotate_right(self.hexmap):
                 self.repaint()
-
-#        elif key == QtCore.Qt.Key_F:
-#            if self.piece.fall(self.hexmap):
-#                self.repaint()
-#            else:
-#                for (i,j) in self.piece.hexagons:
-#                    self.hexmap[i,j] = 1
-#                    self.colmap[i,j] = self.piece.color
-#                self.piece = Piece(np.random.randint(10), self.top.copy())
-#            self.repaint()
 
         elif key == QtCore.Qt.Key_Space:
            while self.piece.fall(self.hexmap):
