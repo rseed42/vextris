@@ -393,7 +393,7 @@ class Window(QtGui.QMainWindow):
         super(Window, self).__init__()
         self.glWidget = GLWidget()
         self.setCentralWidget(self.glWidget)
-        self.setWindowTitle("PyQt4 OpenGL Template")
+        self.setWindowTitle("VexTris")
         self.glWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
         # Status bar
         self.status_bar = self.statusBar()
