@@ -268,17 +268,17 @@ class GLWidget(QtOpenGL.QGLWidget):
                 GL.glEnd()
 
         # Draw piece border hexagons
-#        if border_piece:
-#            GL.glColor3f(*WHITE)
-#            for (i,j) in border_piece.hexagons:
-#                pos = hex2pix(i,j, self.hex_radius)
-#                GL.glBegin(GL.GL_LINE_STRIP)
-#                hex = self.hexagon + pos
-#                for v in hex:
-#                    GL.glVertex3f(v[0],v[1],0)
-#                v = hex[0]
-#                GL.glVertex3f(v[0], v[1], 0)
-#                GL.glEnd()
+        if self.piece:
+            GL.glColor3f(*WHITE)
+            for (i,j) in self.piece.hexagons:
+                pos = hex2pix(i,j, self.hex_radius)
+                GL.glBegin(GL.GL_LINE_STRIP)
+                hex = self.hexagon + pos
+                for v in hex:
+                    GL.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                GL.glVertex3f(v[0], v[1], 0)
+                GL.glEnd()
 
     def new_game(self):
         pass
