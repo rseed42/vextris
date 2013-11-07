@@ -335,15 +335,15 @@ class GLWidget(QtOpenGL.QGLWidget):
     def resizeGL(self, width, height):
         """Called upon window resizing: reinitialize the viewport.
         """
-        self.gl_width, self.gl_height = width, height
+        gl_width, gl_height = width, height
         wdg_ratio = float(height) / width
         # Correct gl width/height
         if wdg_ratio > FIELD_HEIGHT:
-            self.gl_height = int(self.gl_width * FIELD_HEIGHT)
+            gl_height = int(gl_width * FIELD_HEIGHT)
         elif wdg_ratio < FIELD_HEIGHT:
-            self.gl_width = int(self.gl_height / FIELD_HEIGHT)
+            gl_width = int(gl_height / FIELD_HEIGHT)
         # Paint within the whole window
-        gl.glViewport(0, 0, self.gl_width, self.gl_height)
+        gl.glViewport(0, 0, gl_width, gl_height)
         # Set orthographic projection where (0,0) is down left
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glLoadIdentity()
