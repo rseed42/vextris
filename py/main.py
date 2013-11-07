@@ -41,6 +41,7 @@ PIECE_COLS = [ORANGE,BLUE,PURPLE,GREEN,MAGENTA,CYAN,YELLOW,RED,LBLUE,GREY]
 HEXGRID_COL = np.array([0.1,0.1,0.1])
 BGCOL = BLACK
 AREA_FRAME = np.ones(3)*0.25
+PREVIEW_PIECE_BORDER_COL = WHITE
 #-------------------------------------------------------------------------------
 # Math
 DEG60 = np.pi/3
@@ -275,7 +276,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
-
         # Draw the hexagon grid
         gl.glColor3f(*HEXGRID_COL)
         for i in xrange(self.hex_num):
@@ -300,6 +300,19 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
+        # Draw preview piece border hexagons
+        if self.preview_piece:
+            gl.glColor3f(*PREVIEW_PIECE_BORDER_COL)
+            for (i,j) in self.preview_piece.hexagons:
+                pos = hex2pix(i,j, self.hex_radius) + PREVIEW_OFFSET
+                gl.glBegin(gl.GL_LINE_STRIP)
+                hex = self.hexagon + pos
+                for v in hex:
+                    gl.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                gl.glVertex3f(v[0], v[1], 0)
+                gl.glEnd()
+
         # Draw the open gl viewport area
         gl.glColor3f(*GREY)
         gl.glBegin(gl.GL_LINE_STRIP)
