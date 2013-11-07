@@ -188,14 +188,11 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.rows, self.columns = ROWS, COLUMNS
         self.hex_num = self.columns
         # Maybe should make sure the result is an integer
-#        self.hex_radius = 2.*(1./(3.*self.hex_num  + 1.))
         self.hex_radius = 2.*(FIELD_WIDTH/(3.*self.hex_num  + 1.))
         self.hex_height = SQRT3*self.hex_radius
         # We also need to calculate how many fit in horizontally
         self.hex_num_vert = int(np.floor(FIELD_HEIGHT/self.hex_height))
         # Offset vertically by the empty space due to imprecise number of hexes
-#        self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
-#                               dtype=np.int64)
         self.top_center = np.array([self.hex_num/2,self.hex_num_vert],
                                    dtype=np.int32)
         self.hexagon = np.zeros((6,2))
@@ -227,8 +224,6 @@ class GLWidget(QtOpenGL.QGLWidget):
 
     def paintGL(self):
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-
-
         # Draw the hexagons
         for i in xrange(self.hex_num):
             for j in xrange(self.hex_num_vert+4):
@@ -244,7 +239,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
-
         # Draw piece
         if self.piece:
             gl.glColor3f(*self.piece.color)
@@ -257,7 +251,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
-
         # Draw the hexagon grid
         gl.glColor3f(*HEXGRID_COL)
         for i in xrange(self.hex_num):
@@ -270,7 +263,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
-
         # Draw piece border hexagons
         if self.piece:
             gl.glColor3f(*WHITE)
@@ -283,23 +275,20 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
-
         # Draw the open gl viewport area
         gl.glColor3f(*GREY)
         gl.glBegin(gl.GL_LINE_STRIP)
-        m = 0.0
         gl.glVertex2f(0,0)
         gl.glVertex2f(AREA_SIZE[0], 0)
         gl.glVertex2f(AREA_SIZE[0], AREA_SIZE[1])
         gl.glVertex2f(0, AREA_SIZE[1])
         gl.glVertex2f(0, 0)
         gl.glEnd()
-
+        # Draw field separator
         gl.glBegin(gl.GL_LINES)
         gl.glVertex2f(FIELD_WIDTH, 0)
         gl.glVertex2f(FIELD_WIDTH, AREA_SIZE[1])
         gl.glEnd()
-
 
     def resizeGL(self, width, height):
         """Called upon window resizing: reinitialize the viewport.
