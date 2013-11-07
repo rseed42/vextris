@@ -18,6 +18,10 @@ WDG_SIZE = np.array([400, 600])
 FIELD_WIDTH = 0.75
 FIELD_HEIGHT = float(WDG_SIZE[1])/WDG_SIZE[0]
 AREA_SIZE = np.array([1, FIELD_HEIGHT])
+PREVIEW_WIDTH = 1. - FIELD_WIDTH
+PREVIEW_OFFSET = np.array([0.5*(FIELD_WIDTH + PREVIEW_WIDTH),
+                           -0.25*FIELD_HEIGHT])
+
 #-------------------------------------------------------------------------------
 # Colors
 BLACK = np.zeros(3)
@@ -187,13 +191,14 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.speed = START_SPEED
         self.rows, self.columns = ROWS, COLUMNS
         self.hex_num = self.columns
+        self.half_hex_num = self.hex_num/2
         # Maybe should make sure the result is an integer
         self.hex_radius = 2.*(FIELD_WIDTH/(3.*self.hex_num  + 1.))
         self.hex_height = SQRT3*self.hex_radius
         # We also need to calculate how many fit in horizontally
         self.hex_num_vert = int(np.floor(FIELD_HEIGHT/self.hex_height))
         # Offset vertically by the empty space due to imprecise number of hexes
-        self.top_center = np.array([self.hex_num/2,self.hex_num_vert],
+        self.top_center = np.array([self.half_hex_num, self.hex_num_vert],
                                    dtype=np.int32)
         self.hexagon = np.zeros((6,2))
         for i in xrange(6):
@@ -209,6 +214,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.hexmap[:,0] = 1
         self.timer = QtCore.QBasicTimer()
         self.piece = None
+        self.preview_piece = None
         self.score = 0
 
     def select_piece(self):
@@ -256,6 +262,20 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
+
+        # Draw preview piece
+        if self.preview_piece:
+            gl.glColor3f(*self.preview_piece.color)
+            for (i,j) in self.preview_piece.hexagons:
+                pos = hex2pix(i, j, self.hex_radius) + PREVIEW_OFFSET
+                gl.glBegin(gl.GL_TRIANGLE_FAN)
+                hex = self.hexagon + pos
+                for v in hex:
+                    gl.glVertex3f(v[0], v[1], 0)
+                v = hex[0]
+                gl.glVertex3f(v[0], v[1], 0)
+                gl.glEnd()
+
         # Draw the hexagon grid
         gl.glColor3f(*HEXGRID_COL)
         for i in xrange(self.hex_num):
@@ -319,6 +339,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.colmap[:,1:] = BGCOL
         self.hexmap[:,1:] = 0
         self.piece = Piece(self.select_piece(), self.top_center.copy())
+        self.preview_piece = Piece(self.select_piece(), self.top_center.copy())
         self.repaint()
         self.timer.start(self.speed*1000., self)
         self.score = 0
@@ -359,7 +380,9 @@ class GLWidget(QtOpenGL.QGLWidget):
             i += 1
 
         # Generate new piece
-        self.piece = Piece(self.select_piece(), self.top_center.copy())
+        self.piece = self.preview_piece
+#        self.piece = Piece(self.select_piece(), self.top_center.copy())
+        self.preview_piece = Piece(self.select_piece(), self.top_center.copy())
         self.repaint()
 
         # Calculate score & speedup
