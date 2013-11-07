@@ -2,7 +2,7 @@
 import sys
 from PyQt4 import QtCore, QtGui, QtOpenGL
 try:
-    from OpenGL import GL
+    from OpenGL import GL as gl
 except ImportError:
     app = QtGui.QApplication(sys.argv)
     QtGui.QMessageBox.critical(None, "OpenGL 2dpainting",
@@ -204,13 +204,13 @@ class GLWidget(QtOpenGL.QGLWidget):
     def initializeGL(self):
         """Initialize OpenGL, VBOs, upload data on the GPU, etc.
         """
-        GL.glClearColor(0,0,0,0)
+        gl.glClearColor(0,0,0,0)
 
     def paintGL(self):
         """Paint the scene.
         """
         # clear the buffer
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
     def resizeGL(self, width, height):
         """Called upon window resizing: reinitialize the viewport.
@@ -222,12 +222,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.field_width = FIELD[0] * width
         self.field_height = FIELD[1] * height
         # paint within the whole window
-        GL.glViewport(0, 0, width, height)
+        gl.glViewport(0, 0, width, height)
         # set orthographic projection (2D only)
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
         # the window corner OpenGL coordinates are (0, 11)
-        GL.glOrtho(0, 1, 0, hw_ratio, -1, 1)
+        gl.glOrtho(0, 1, 0, hw_ratio, -1, 1)
 
 #class GLWidget(QtOpenGL.QGLWidget):
 #    def __init__(self, parent=None):
