@@ -13,26 +13,11 @@ import numpy as np
 #===============================================================================
 # GUI Definitions (defaults)
 WND_TITLE = 'VexTris'
-WND_POS = np.array([100, 50])
-ROWS, COLS = 24, 13
+ROWS, COLS = 23, 13
 WDG_SIZE = np.array([400, 600])
-# Portion of WDG_SIZE
-FIELD = np.array([0.8, 1.])
-
-#WDG_WIDTH = 400
-#WDG_HEIGHT = 600
-
-#
-#WND_RATIO = 1.75
-## Dimensions
-#
-#FIELD_WIDTH = 300
-#FIELD_HEIGHT = FIELD_WIDTH*WND_RATIO
-#FIELD_SIZE = np.array([FIELD_WIDTH, FIELD_HEIGHT])
-#
-#WND_WIDTH = FIELD_WIDTH + FIELD_WIDTH*0.15
-#FIELD_HEIGHT = FIELD_WIDTH * WND_RATIO
-#WND_HEIGHT = FIELD_HEIGHT
+FIELD_WIDTH = 0.75
+FIELD_HEIGHT = float(WDG_SIZE[1])/WDG_SIZE[0]
+AREA_SIZE = np.array([1, FIELD_HEIGHT])
 #-------------------------------------------------------------------------------
 # Colors
 BLACK = np.zeros(3)
@@ -51,6 +36,7 @@ PIECE_COLS = [ORANGE,BLUE,PURPLE,GREEN,MAGENTA,CYAN,YELLOW,RED,LBLUE,GREY]
 # blue,yellow,red,orange,green,purple,cyan,gray45,magenta,lightblue
 HEXGRID_COL = np.array([0.1,0.1,0.1])
 BGCOL = BLACK
+AREA_FRAME = np.ones(3)*0.25
 #-------------------------------------------------------------------------------
 # Math
 DEG60 = np.pi/3
@@ -198,42 +184,6 @@ class Piece(object):
 class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
-        self.width, self.height = WDG_SIZE
-        self.field_width, self.field_height = FIELD*WDG_SIZE
-
-    def initializeGL(self):
-        """Initialize OpenGL, VBOs, upload data on the GPU, etc.
-        """
-        gl.glClearColor(0,0,0,0)
-
-    def paintGL(self):
-        """Paint the scene.
-        """
-        # clear the buffer
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-
-    def resizeGL(self, width, height):
-        """Called upon window resizing: reinitialize the viewport.
-        """
-        hw_ratio = float(height)/width
-        print 'resizeGL:', width, height, hw_ratio
-        # update the window size
-        self.width, self.height = width, height
-        self.field_width = FIELD[0] * width
-        self.field_height = FIELD[1] * height
-        # paint within the whole window
-        gl.glViewport(0, 0, width, height)
-        # set orthographic projection (2D only)
-        gl.glMatrixMode(gl.GL_PROJECTION)
-        gl.glLoadIdentity()
-        # the window corner OpenGL coordinates are (0, 11)
-        gl.glOrtho(0, 1, 0, hw_ratio, -1, 1)
-
-#class GLWidget(QtOpenGL.QGLWidget):
-#    def __init__(self, parent=None):
-#        super(GLWidget, self).__init__(parent)
-#        self.width = WDG_WIDTH
-#        self.height = WDG_HEIGHT
 #        self.speed = START_SPEED
 #        self.hex_num = 13
 #        # Maybe should make sure the result is an integer
@@ -266,19 +216,33 @@ class GLWidget(QtOpenGL.QGLWidget):
 #    def status_message(self, s):
 #        self.parent().status_bar.showMessage(s)
 #
-#    def initializeGL(self):
-#        GL.glShadeModel(GL.GL_SMOOTH)
-#        GL.glClearColor(BGCOL[0], BGCOL[1], BGCOL[2], 0)
-#        GL.glClearDepth(1.0)
-#        GL.glEnable(GL.GL_DEPTH_TEST)
-#        GL.glDepthFunc(GL.GL_LEQUAL)
-#        GL.glHint(GL.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST)
-#
-#    def paintGL(self):
-#        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-#        GL.glLoadIdentity()
-#        GL.glTranslatef(0.0, 0.0, -1)
-#
+    def initializeGL(self):
+        gl.glShadeModel(gl.GL_SMOOTH)
+        gl.glClearColor(BGCOL[0], BGCOL[1], BGCOL[2], 0)
+        gl.glClearDepth(1.0)
+        gl.glEnable(gl.GL_DEPTH_TEST)
+        gl.glDepthFunc(gl.GL_LEQUAL)
+        gl.glHint(gl.GL_PERSPECTIVE_CORRECTION_HINT, gl.GL_NICEST)
+
+    def paintGL(self):
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+
+        # Draw the open gl viewport area
+        gl.glColor3f(*GREY)
+        gl.glBegin(gl.GL_LINE_STRIP)
+        m = 0.0
+        gl.glVertex2f(0,0)
+        gl.glVertex2f(AREA_SIZE[0], 0)
+        gl.glVertex2f(AREA_SIZE[0], AREA_SIZE[1])
+        gl.glVertex2f(0, AREA_SIZE[1])
+        gl.glVertex2f(0, 0)
+        gl.glEnd()
+
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex2f(FIELD_WIDTH, 0)
+        gl.glVertex2f(FIELD_WIDTH, AREA_SIZE[1])
+        gl.glEnd()
+
 #        # Draw the hexagons
 #        for i in xrange(self.hex_num):
 #            for j in xrange(self.hex_num_vert+4):
@@ -334,6 +298,24 @@ class GLWidget(QtOpenGL.QGLWidget):
 #                GL.glVertex3f(v[0], v[1], 0)
 #                GL.glEnd()
 #
+    def resizeGL(self, width, height):
+        """Called upon window resizing: reinitialize the viewport.
+        """
+        self.gl_width, self.gl_height = width, height
+        wdg_ratio = float(height) / width
+        # Correct gl width/height
+        if wdg_ratio > FIELD_HEIGHT:
+            self.gl_height = int(self.gl_width * FIELD_HEIGHT)
+        elif wdg_ratio < FIELD_HEIGHT:
+            self.gl_width = int(self.gl_height / FIELD_HEIGHT)
+
+        # Paint within the whole window
+        gl.glViewport(0, 0, self.gl_width, self.gl_height)
+        # Set orthographic projection where (0,0) is down left
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
+        gl.glOrtho(0, 1, 0, FIELD_HEIGHT, -1, 1)
+
 #    def new_game(self):
 #        self.speed = START_SPEED
 #        self.status_message('New Game')
@@ -459,6 +441,8 @@ class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
         self.glWidget = GLWidget()
+        self.glWidget.setMinimumWidth(WDG_SIZE[0])
+        self.glWidget.setMinimumHeight(WDG_SIZE[1])
         self.setCentralWidget(self.glWidget)
         self.glWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setWindowTitle("VexTris")
@@ -468,13 +452,6 @@ class Window(QtGui.QMainWindow):
         # Menu
         self.menu_bar = self.menuBar()
         self.create_menus()
-        # For some reason there is an 8 pixel discrepancy between
-        # the heights of the status bar and the menu bar
-        wnd_height = self.glWidget.height + \
-                     self.status_bar.height() - 8 + \
-                     self.menu_bar.height() - 8
-        self.setGeometry(WND_POS[0], WND_POS[1],
-                         self.glWidget.width, wnd_height)
 
     def create_menus(self):
         fileMenu = self.menu_bar.addMenu('&Game')
