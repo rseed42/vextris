@@ -228,21 +228,6 @@ class GLWidget(QtOpenGL.QGLWidget):
     def paintGL(self):
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
-        # Draw the open gl viewport area
-        gl.glColor3f(*GREY)
-        gl.glBegin(gl.GL_LINE_STRIP)
-        m = 0.0
-        gl.glVertex2f(0,0)
-        gl.glVertex2f(AREA_SIZE[0], 0)
-        gl.glVertex2f(AREA_SIZE[0], AREA_SIZE[1])
-        gl.glVertex2f(0, AREA_SIZE[1])
-        gl.glVertex2f(0, 0)
-        gl.glEnd()
-
-        gl.glBegin(gl.GL_LINES)
-        gl.glVertex2f(FIELD_WIDTH, 0)
-        gl.glVertex2f(FIELD_WIDTH, AREA_SIZE[1])
-        gl.glEnd()
 
         # Draw the hexagons
         for i in xrange(self.hex_num):
@@ -298,6 +283,23 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
+
+        # Draw the open gl viewport area
+        gl.glColor3f(*GREY)
+        gl.glBegin(gl.GL_LINE_STRIP)
+        m = 0.0
+        gl.glVertex2f(0,0)
+        gl.glVertex2f(AREA_SIZE[0], 0)
+        gl.glVertex2f(AREA_SIZE[0], AREA_SIZE[1])
+        gl.glVertex2f(0, AREA_SIZE[1])
+        gl.glVertex2f(0, 0)
+        gl.glEnd()
+
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex2f(FIELD_WIDTH, 0)
+        gl.glVertex2f(FIELD_WIDTH, AREA_SIZE[1])
+        gl.glEnd()
+
 
     def resizeGL(self, width, height):
         """Called upon window resizing: reinitialize the viewport.
