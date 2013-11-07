@@ -13,10 +13,10 @@ import numpy as np
 #===============================================================================
 # GUI Definitions
 WND_TITLE = 'VexTris'
-GOLDEN_RATIO = 2.
+WND_RATIO = 2.
 # Dimensions
 FIELD_WIDTH = 300
-FIELD_HEIGHT = FIELD_WIDTH*GOLDEN_RATIO
+FIELD_HEIGHT = FIELD_WIDTH*WND_RATIO
 FIELD_SIZE = np.array([FIELD_WIDTH, FIELD_HEIGHT])
 #-------------------------------------------------------------------------------
 # Colors
@@ -192,7 +192,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Whole height
         self.hex_height = SQRT3*self.hex_radius
         # We also need to calculate how many fit in horizontally
-        self.hex_num_vert = int(np.floor(GOLDEN_RATIO/self.hex_height))
+        self.hex_num_vert = int(np.floor(WND_RATIO/self.hex_height))
         # Offset vertically by the empty space due to imprecise number of hexes
         self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
                                dtype=np.int64)
@@ -357,7 +357,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         GL.glViewport((width - side) / 2, (height - side) / 2, side, side)
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GL.glOrtho(0, 1.0, 0, GOLDEN_RATIO, -1.0, 1.0)
+        GL.glOrtho(0, 1.0, 0, WND_RATIO, -1.0, 1.0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glViewport(0,0,width,height)
 
