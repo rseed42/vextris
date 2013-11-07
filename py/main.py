@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sys
+import time
+from datetime import timedelta
 from PyQt4 import QtCore, QtGui, QtOpenGL
 try:
     from OpenGL import GL as gl
@@ -91,6 +93,11 @@ START_SPEED = 0.4
 SPEED_MULT = 0.99
 # Score for a number of simultaneously destroyed lines
 SCORE_TABLE = [100,200,400,800]
+#-------------------------------------------------------------------------------
+# Messages
+MSG_EG = 'Game Over | Score: {0} | Lines: {1} | Time: {2:0>2}:{3:0>2} s'
+MSG_LN = 'Score: {0} | {1:.1f} ms | Lines: {2}'
+MSG_PAUSE = 'Paused'
 #-------------------------------------------------------------------------------
 def hex2pix(q,r, radius):
     """ Hexagons are in an even-q vertical layout
@@ -214,6 +221,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.piece = None
         self.preview_piece = None
         self.score = 0
+        self.play_time = 0
+        self.line_count = 0
 
     def select_piece(self):
         """ To be used by friendly/adversary AI
@@ -342,7 +351,6 @@ class GLWidget(QtOpenGL.QGLWidget):
 
     def new_game(self):
         self.speed = START_SPEED
-        self.status_message('New Game')
         self.colmap[:,1:] = BGCOL
         self.hexmap[:,1:] = 0
         self.piece = Piece(self.select_piece(), self.top_center.copy())
@@ -350,12 +358,26 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.repaint()
         self.timer.start(self.speed*1000., self)
         self.score = 0
+        self.play_time = time.time()
+        self.line_count = 0
+        self.status_message(self.msg_line())
 
     def pause_game(self):
         if self.timer.isActive():
             self.timer.stop()
+            self.status_message(MSG_PAUSE)
         elif self.piece:
             self.timer.start(self.speed*1000, self)
+            self.status_message(self.msg_line())
+
+    def msg_end_game(self):
+        play_time = time.time() - self.play_time
+        pt_min = int(play_time)/60
+        pt_sec = int(play_time) % 60
+        return MSG_EG.format(self.score, self.line_count, pt_min, pt_sec)
+
+    def msg_line(self):
+        return MSG_LN.format(self.score, self.speed*1000, self.line_count)
 
     def timerEvent(self, e):
         if not self.piece and not self.timer.isActive(): return
@@ -369,7 +391,7 @@ class GLWidget(QtOpenGL.QGLWidget):
             self.colmap[i,j] = self.piece.color
         # Check if game is over
         if self.hex_num_vert-1 in self.piece.hexagons[:,1]:
-            self.status_message('Game Over')
+            self.status_message(self.msg_end_game())
             self.timer.stop()
             self.repaint()
             return
@@ -392,6 +414,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Calculate score & speedup
         if not rm_lines_count:
             return
+        self.line_count += rm_lines_count
         # Lookup in table
         lines_mult = SCORE_TABLE[-1]
         if rm_lines_count <= len(SCORE_TABLE):
@@ -399,8 +422,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.score += lines_mult*rm_lines_count
         # Speedup
         self.speed = (SPEED_MULT**rm_lines_count)*self.speed
-        self.status_message('Score: {0} | {1:.1f} ms | lines: {2}'.format(
-            self.score, self.speed*1000, rm_lines_count))
+        self.status_message(self.msg_line())
         self.timer.stop()
         self.timer.start(self.speed*1000., self)
 
