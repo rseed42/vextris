@@ -13,7 +13,7 @@ import numpy as np
 #===============================================================================
 # GUI Definitions (defaults)
 WND_TITLE = 'VexTris'
-ROWS, COLS = 23, 13
+ROWS, COLUMNS = 23, 13
 WDG_SIZE = np.array([400, 600])
 FIELD_WIDTH = 0.75
 FIELD_HEIGHT = float(WDG_SIZE[1])/WDG_SIZE[0]
@@ -184,38 +184,39 @@ class Piece(object):
 class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
-#        self.speed = START_SPEED
-#        self.hex_num = 13
-#        # Maybe should make sure the result is an integer
-#        self.half_hex_num = self.hex_num/2
+        self.speed = START_SPEED
+        self.rows, self.columns = ROWS, COLUMNS
+        self.hex_num = self.columns
+        # Maybe should make sure the result is an integer
 #        self.hex_radius = 2.*(1./(3.*self.hex_num  + 1.))
-#        # Whole height
-#        self.hex_height = SQRT3*self.hex_radius
-#        # We also need to calculate how many fit in horizontally
-#        self.hex_num_vert = int(np.floor(WND_RATIO/self.hex_height))
-#        # Offset vertically by the empty space due to imprecise number of hexes
+        self.hex_radius = 2.*(FIELD_WIDTH/(3.*self.hex_num  + 1.))
+        self.hex_height = SQRT3*self.hex_radius
+        # We also need to calculate how many fit in horizontally
+        self.hex_num_vert = int(np.floor(FIELD_HEIGHT/self.hex_height))
+        # Offset vertically by the empty space due to imprecise number of hexes
 #        self.center = np.array([self.hex_num/2, self.hex_num_vert/2],
 #                               dtype=np.int64)
-#        self.top = np.array([self.hex_num/2,self.hex_num_vert],dtype=np.int64)
-#        self.hexagon = np.zeros((6,2))
-#        for i in xrange(6):
-#            angle = i*DEG60
-#            self.hexagon[i][0] = self.hex_radius * np.cos(angle)
-#            self.hexagon[i][1] = self.hex_radius * np.sin(angle)
-#
-#        # The hexmap is a width x height matrix so that it can be
-#        # for coordinate conversion in a more natural way
-#        self.colmap = np.zeros((self.hex_num, self.hex_num_vert+4, 3))
-#        self.colmap[:,0] = HEXGRID_COL
-#        self.hexmap = np.zeros((self.hex_num, self.hex_num_vert+4))
-#        self.hexmap[:,0] = 1
-#        self.timer = QtCore.QBasicTimer()
-#        self.piece = None
-#        self.score = 0
-#
-#    def status_message(self, s):
-#        self.parent().status_bar.showMessage(s)
-#
+        self.top_center = np.array([self.hex_num/2,self.hex_num_vert],
+                                   dtype=np.int32)
+        self.hexagon = np.zeros((6,2))
+        for i in xrange(6):
+            angle = i*DEG60
+            self.hexagon[i][0] = self.hex_radius * np.cos(angle)
+            self.hexagon[i][1] = self.hex_radius * np.sin(angle)
+
+        # The hexmap is a width x height matrix so that it can be
+        # for coordinate conversion in a more natural way
+        self.colmap = np.zeros((self.hex_num, self.hex_num_vert+4, 3))
+        self.colmap[:,0] = HEXGRID_COL
+        self.hexmap = np.zeros((self.hex_num, self.hex_num_vert+4))
+        self.hexmap[:,0] = 1
+        self.timer = QtCore.QBasicTimer()
+        self.piece = None
+        self.score = 0
+
+    def status_message(self, s):
+        self.parent().status_bar.showMessage(s)
+
     def initializeGL(self):
         gl.glShadeModel(gl.GL_SMOOTH)
         gl.glClearColor(BGCOL[0], BGCOL[1], BGCOL[2], 0)
@@ -243,61 +244,61 @@ class GLWidget(QtOpenGL.QGLWidget):
         gl.glVertex2f(FIELD_WIDTH, AREA_SIZE[1])
         gl.glEnd()
 
-#        # Draw the hexagons
-#        for i in xrange(self.hex_num):
-#            for j in xrange(self.hex_num_vert+4):
-#                # Coordinates for r must be corrected due to romboidal
-#                # (non-perpendicular angle between the axes) shape.
-#                pos = hex2pix(i,j, self.hex_radius)
-#                GL.glBegin(GL.GL_TRIANGLE_FAN)
-#                col = self.colmap[i, j]
-#                GL.glColor3f(*self.colmap[i,j])
-#                hex = self.hexagon + pos
-#                for v in hex:
-#                    GL.glVertex3f(v[0],v[1],0)
-#                v = hex[0]
-#                GL.glVertex3f(v[0], v[1], 0)
-#                GL.glEnd()
-#
-#        # Draw piece
-#        if self.piece:
-#            GL.glColor3f(*self.piece.color)
-#            for (i,j) in self.piece.hexagons:
-#                pos = hex2pix(i, j, self.hex_radius)
-#                GL.glBegin(GL.GL_TRIANGLE_FAN)
-#                hex = self.hexagon + pos
-#                for v in hex:
-#                    GL.glVertex3f(v[0], v[1], 0)
-#                v = hex[0]
-#                GL.glVertex3f(v[0], v[1], 0)
-#                GL.glEnd()
-#
-#        # Draw the hexagon grid
-#        GL.glColor3f(*HEXGRID_COL)
-#        for i in xrange(self.hex_num):
-#            for j in xrange(self.hex_num_vert+4):
-#                pos = hex2pix(i,j, self.hex_radius)
-#                GL.glBegin(GL.GL_LINE_STRIP)
-#                hex = self.hexagon + pos
-#                for v in hex:
-#                    GL.glVertex3f(v[0],v[1],0)
-#                v = hex[0]
-#                GL.glVertex3f(v[0], v[1], 0)
-#                GL.glEnd()
-#
-#        # Draw piece border hexagons
-#        if self.piece:
-#            GL.glColor3f(*WHITE)
-#            for (i,j) in self.piece.hexagons:
-#                pos = hex2pix(i,j, self.hex_radius)
-#                GL.glBegin(GL.GL_LINE_STRIP)
-#                hex = self.hexagon + pos
-#                for v in hex:
-#                    GL.glVertex3f(v[0],v[1],0)
-#                v = hex[0]
-#                GL.glVertex3f(v[0], v[1], 0)
-#                GL.glEnd()
-#
+        # Draw the hexagons
+        for i in xrange(self.hex_num):
+            for j in xrange(self.hex_num_vert+4):
+                # Coordinates for r must be corrected due to romboidal
+                # (non-perpendicular angle between the axes) shape.
+                pos = hex2pix(i,j, self.hex_radius)
+                gl.glBegin(gl.GL_TRIANGLE_FAN)
+                col = self.colmap[i, j]
+                gl.glColor3f(*self.colmap[i,j])
+                hex = self.hexagon + pos
+                for v in hex:
+                    gl.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                gl.glVertex3f(v[0], v[1], 0)
+                gl.glEnd()
+
+        # Draw piece
+        if self.piece:
+            gl.glColor3f(*self.piece.color)
+            for (i,j) in self.piece.hexagons:
+                pos = hex2pix(i, j, self.hex_radius)
+                gl.glBegin(gl.GL_TRIANGLE_FAN)
+                hex = self.hexagon + pos
+                for v in hex:
+                    gl.glVertex3f(v[0], v[1], 0)
+                v = hex[0]
+                gl.glVertex3f(v[0], v[1], 0)
+                gl.glEnd()
+
+        # Draw the hexagon grid
+        gl.glColor3f(*HEXGRID_COL)
+        for i in xrange(self.hex_num):
+            for j in xrange(self.hex_num_vert+4):
+                pos = hex2pix(i,j, self.hex_radius)
+                gl.glBegin(gl.GL_LINE_STRIP)
+                hex = self.hexagon + pos
+                for v in hex:
+                    gl.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                gl.glVertex3f(v[0], v[1], 0)
+                gl.glEnd()
+
+        # Draw piece border hexagons
+        if self.piece:
+            gl.glColor3f(*WHITE)
+            for (i,j) in self.piece.hexagons:
+                pos = hex2pix(i,j, self.hex_radius)
+                gl.glBegin(gl.GL_LINE_STRIP)
+                hex = self.hexagon + pos
+                for v in hex:
+                    gl.glVertex3f(v[0],v[1],0)
+                v = hex[0]
+                gl.glVertex3f(v[0], v[1], 0)
+                gl.glEnd()
+
     def resizeGL(self, width, height):
         """Called upon window resizing: reinitialize the viewport.
         """
@@ -316,123 +317,111 @@ class GLWidget(QtOpenGL.QGLWidget):
         gl.glLoadIdentity()
         gl.glOrtho(0, 1, 0, FIELD_HEIGHT, -1, 1)
 
-#    def new_game(self):
-#        self.speed = START_SPEED
-#        self.status_message('New Game')
-#        self.colmap[:,1:] = BGCOL
-#        self.hexmap[:,1:] = 0
-#        self.piece = Piece(np.random.randint(10), self.top.copy())
-#        self.repaint()
-#        self.timer.start(self.speed*1000., self)
-#        self.score = 0
-#
-#    def pause_game(self):
-#        if self.timer.isActive():
-#            self.timer.stop()
-#        elif self.piece:
-#            self.timer.start(self.speed*1000, self)
-#
-#    def timerEvent(self, e):
-#        if not self.piece and not self.timer.isActive(): return
-#        # Check for collision
-#        if self.piece.fall(self.hexmap):
-#            self.repaint()
-#            return
-#        # Fill in the grid with current piece
-#        for (i,j) in self.piece.hexagons:
-#            self.hexmap[i,j] = 1
-#            self.colmap[i,j] = self.piece.color
-#        # Check if game is over
-#        if self.hex_num_vert-1 in self.piece.hexagons[:,1]:
-#            self.status_message('Game Over')
-#            self.timer.stop()
-#            self.repaint()
-#            return
-#        # Scan for complete lines, starting one above the ground
-#        i = 1
-#        rm_lines_count = 0
-#        while i < self.hex_num_vert:
-#            if self.hexmap[:,i].sum() == self.hex_num:
-#                rm_lines_count += 1
-#                # Pull down all the rows above i
-#                for j in xrange(i, self.hex_num_vert-1):
-#                    for k in xrange(self.hex_num):
-#                        self.colmap[k,j] = self.colmap[k,j+1]
-#                        self.hexmap[k,j] = self.hexmap[k,j+1]
-#            i += 1
-#
-#        # Generate new piece
-#        self.piece = Piece(np.random.randint(10), self.top.copy())
-#        self.repaint()
-#
-#        # Calculate score & speedup
-#        if not rm_lines_count:
-#            return
-#        # Lookup in table
-#        lines_mult = SCORE_TABLE[-1]
-#        if rm_lines_count <= len(SCORE_TABLE):
-#            lines_mult = SCORE_TABLE[rm_lines_count-1]
-#        self.score += lines_mult*rm_lines_count
-#
-#        # Speedup
-#        self.speed = (SPEED_MULT**rm_lines_count)*self.speed
-#        self.status_message('Score: {0} | {1:.1f} ms | lines: {2}'.format(
-#            self.score, self.speed*1000, rm_lines_count))
-#        self.timer.stop()
-#        self.timer.start(self.speed*1000., self)
-#
-#    def resizeGL(self, width, height):
-#        side = min(width, height)
-#        hr = 0.5*height/width
-#        if side < 0:
-#            return
-#        GL.glViewport((width - side) / 2, (height - side) / 2, side, side)
-#        GL.glMatrixMode(GL.GL_PROJECTION)
-#        GL.glLoadIdentity()
-#        GL.glOrtho(0, 1.0, 0, WND_RATIO, -1.0, 1.0)
-#        GL.glMatrixMode(GL.GL_MODELVIEW)
-#        GL.glViewport(0,0,width,height)
-#
-#    def keyPressEvent(self, event):
-#        key = event.key()
-#        if key == QtCore.Qt.Key_Q:
-#            QtGui.qApp.quit()
-#        elif key == QtCore.Qt.Key_N:
-#            self.new_game()
-#        elif key == QtCore.Qt.Key_P:
-#            self.pause_game()
-#
-#        if not self.timer.isActive(): return
-#        if key == QtCore.Qt.Key_Left:
-#            res = self.piece.move_left(self.hexmap)
-#            # Avoid wall collisions
-#            if res == 3:
-#                if self.piece.move_down_left(self.hexmap) == 0:
-#                    self.repaint()
-#            elif res == 0:
-#                self.repaint()
-#
-#        elif key == QtCore.Qt.Key_Right:
-#            res = self.piece.move_right(self.hexmap)
-#            # Avoid wall collisions
-#            if res == 3:
-#                if self.piece.move_down_right(self.hexmap) == 0:
-#                    self.repaint()
-#            elif res == 0:
-#                self.repaint()
-#
-#        elif key == QtCore.Qt.Key_Down:
-#            if self.piece.rotate_left(self.hexmap):
-#                self.repaint()
-#
-#        elif key == QtCore.Qt.Key_Up:
-#            if self.piece.rotate_right(self.hexmap):
-#                self.repaint()
-#
-#        elif key == QtCore.Qt.Key_Space:
-#           while self.piece.fall(self.hexmap):
-#               pass
-#           self.repaint()
+    def new_game(self):
+        self.speed = START_SPEED
+        self.status_message('New Game')
+        self.colmap[:,1:] = BGCOL
+        self.hexmap[:,1:] = 0
+        self.piece = Piece(np.random.randint(10), self.top_center.copy())
+        self.repaint()
+        self.timer.start(self.speed*1000., self)
+        self.score = 0
+
+    def pause_game(self):
+        if self.timer.isActive():
+            self.timer.stop()
+        elif self.piece:
+            self.timer.start(self.speed*1000, self)
+
+    def timerEvent(self, e):
+        if not self.piece and not self.timer.isActive(): return
+        # Check for collision
+        if self.piece.fall(self.hexmap):
+            self.repaint()
+            return
+        # Fill in the grid with current piece
+        for (i,j) in self.piece.hexagons:
+            self.hexmap[i,j] = 1
+            self.colmap[i,j] = self.piece.color
+        # Check if game is over
+        if self.hex_num_vert-1 in self.piece.hexagons[:,1]:
+            self.status_message('Game Over')
+            self.timer.stop()
+            self.repaint()
+            return
+        # Scan for complete lines, starting one above the ground
+        i = 1
+        rm_lines_count = 0
+        while i < self.hex_num_vert:
+            if self.hexmap[:,i].sum() == self.hex_num:
+                rm_lines_count += 1
+                # Pull down all the rows above i
+                for j in xrange(i, self.hex_num_vert-1):
+                    for k in xrange(self.hex_num):
+                        self.colmap[k,j] = self.colmap[k,j+1]
+                        self.hexmap[k,j] = self.hexmap[k,j+1]
+            i += 1
+
+        # Generate new piece
+        self.piece = Piece(np.random.randint(10), self.top_center.copy())
+        self.repaint()
+
+        # Calculate score & speedup
+        if not rm_lines_count:
+            return
+        # Lookup in table
+        lines_mult = SCORE_TABLE[-1]
+        if rm_lines_count <= len(SCORE_TABLE):
+            lines_mult = SCORE_TABLE[rm_lines_count-1]
+        self.score += lines_mult*rm_lines_count
+
+        # Speedup
+        self.speed = (SPEED_MULT**rm_lines_count)*self.speed
+        self.status_message('Score: {0} | {1:.1f} ms | lines: {2}'.format(
+            self.score, self.speed*1000, rm_lines_count))
+        self.timer.stop()
+        self.timer.start(self.speed*1000., self)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == QtCore.Qt.Key_Q:
+            QtGui.qApp.quit()
+        elif key == QtCore.Qt.Key_N:
+            self.new_game()
+        elif key == QtCore.Qt.Key_P:
+            self.pause_game()
+
+        if not self.timer.isActive(): return
+        if key == QtCore.Qt.Key_Left:
+            res = self.piece.move_left(self.hexmap)
+            # Avoid wall collisions
+            if res == 3:
+                if self.piece.move_down_left(self.hexmap) == 0:
+                    self.repaint()
+            elif res == 0:
+                self.repaint()
+
+        elif key == QtCore.Qt.Key_Right:
+            res = self.piece.move_right(self.hexmap)
+            # Avoid wall collisions
+            if res == 3:
+                if self.piece.move_down_right(self.hexmap) == 0:
+                    self.repaint()
+            elif res == 0:
+                self.repaint()
+
+        elif key == QtCore.Qt.Key_Down:
+            if self.piece.rotate_left(self.hexmap):
+                self.repaint()
+
+        elif key == QtCore.Qt.Key_Up:
+            if self.piece.rotate_right(self.hexmap):
+                self.repaint()
+
+        elif key == QtCore.Qt.Key_Space:
+           while self.piece.fall(self.hexmap):
+               pass
+           self.repaint()
 
 #-------------------------------------------------------------------------------
 # Window
@@ -456,23 +445,23 @@ class Window(QtGui.QMainWindow):
     def create_menus(self):
         fileMenu = self.menu_bar.addMenu('&Game')
 
-#        newAction = QtGui.QAction('&New', self)
-#        newAction.setShortcut('Ctrl+N')
-#        newAction.setStatusTip('New Game')
-#        newAction.triggered.connect(self.glWidget.new_game)
-#
-#        pauseAction = QtGui.QAction('&Pause', self)
-#        pauseAction.setShortcut('Ctrl+P')
-#        pauseAction.setStatusTip('Pause Game')
-#        pauseAction.triggered.connect(self.glWidget.pause_game)
+        newAction = QtGui.QAction('&New', self)
+        newAction.setShortcut('Ctrl+N')
+        newAction.setStatusTip('New Game')
+        newAction.triggered.connect(self.glWidget.new_game)
+
+        pauseAction = QtGui.QAction('&Pause', self)
+        pauseAction.setShortcut('Ctrl+P')
+        pauseAction.setStatusTip('Pause Game')
+        pauseAction.triggered.connect(self.glWidget.pause_game)
 
         quitAction = QtGui.QAction('&Quit', self)
         quitAction.setShortcut('Ctrl+Q')
         quitAction.setStatusTip('Quit Game')
         quitAction.triggered.connect(QtGui.qApp.quit)
 
-#        fileMenu.addAction(newAction)
-#        fileMenu.addAction(pauseAction)
+        fileMenu.addAction(newAction)
+        fileMenu.addAction(pauseAction)
         fileMenu.addAction(quitAction)
 
 #-------------------------------------------------------------------------------
