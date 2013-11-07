@@ -8,7 +8,6 @@ except ImportError:
     QtGui.QMessageBox.critical(None, "OpenGL 2dpainting",
             "PyOpenGL must be installed to run this example.")
     sys.exit(1)
-
 import numpy as np
 #===============================================================================
 # GUI Definitions (defaults)
@@ -21,9 +20,8 @@ AREA_SIZE = np.array([1, FIELD_HEIGHT])
 PREVIEW_WIDTH = 1. - FIELD_WIDTH
 PREVIEW_OFFSET = np.array([0.5*(FIELD_WIDTH + PREVIEW_WIDTH),
                            -0.25*FIELD_HEIGHT])
-
 #-------------------------------------------------------------------------------
-# Colors
+# General Colors
 BLACK = np.zeros(3)
 GREY = np.array([0.18,0.18,0.18])
 WHITE = np.ones(3)
@@ -36,8 +34,8 @@ PURPLE = np.array([0.63,0.12,0.94])
 LBLUE = np.array([0.68,0.85,0.9])
 CYAN = np.array([0,1.0,1.0])
 YELLOW = np.array([1.0,1.0,0])
+# Color config
 PIECE_COLS = [ORANGE,BLUE,PURPLE,GREEN,MAGENTA,CYAN,YELLOW,RED,LBLUE,GREY]
-# blue,yellow,red,orange,green,purple,cyan,gray45,magenta,lightblue
 HEXGRID_COL = np.array([0.1,0.1,0.1])
 BGCOL = BLACK
 AREA_FRAME = np.ones(3)*0.25
@@ -206,7 +204,6 @@ class GLWidget(QtOpenGL.QGLWidget):
             angle = i*DEG60
             self.hexagon[i][0] = self.hex_radius * np.cos(angle)
             self.hexagon[i][1] = self.hex_radius * np.sin(angle)
-
         # The hexmap is a width x height matrix so that it can be
         # for coordinate conversion in a more natural way
         self.colmap = np.zeros((self.hex_num, self.hex_num_vert+4, 3))
@@ -263,7 +260,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
-
         # Draw preview piece
         if self.preview_piece:
             gl.glColor3f(*self.preview_piece.color)
@@ -312,7 +308,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                 v = hex[0]
                 gl.glVertex3f(v[0], v[1], 0)
                 gl.glEnd()
-
         # Draw the open gl viewport area
         gl.glColor3f(*GREY)
         gl.glBegin(gl.GL_LINE_STRIP)
@@ -338,7 +333,6 @@ class GLWidget(QtOpenGL.QGLWidget):
             self.gl_height = int(self.gl_width * FIELD_HEIGHT)
         elif wdg_ratio < FIELD_HEIGHT:
             self.gl_width = int(self.gl_height / FIELD_HEIGHT)
-
         # Paint within the whole window
         gl.glViewport(0, 0, self.gl_width, self.gl_height)
         # Set orthographic projection where (0,0) is down left
@@ -391,13 +385,10 @@ class GLWidget(QtOpenGL.QGLWidget):
                         self.colmap[k,j] = self.colmap[k,j+1]
                         self.hexmap[k,j] = self.hexmap[k,j+1]
             i += 1
-
         # Generate new piece
         self.piece = self.preview_piece
-#        self.piece = Piece(self.select_piece(), self.top_center.copy())
         self.preview_piece = Piece(self.select_piece(), self.top_center.copy())
         self.repaint()
-
         # Calculate score & speedup
         if not rm_lines_count:
             return
@@ -406,7 +397,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         if rm_lines_count <= len(SCORE_TABLE):
             lines_mult = SCORE_TABLE[rm_lines_count-1]
         self.score += lines_mult*rm_lines_count
-
         # Speedup
         self.speed = (SPEED_MULT**rm_lines_count)*self.speed
         self.status_message('Score: {0} | {1:.1f} ms | lines: {2}'.format(
@@ -416,13 +406,14 @@ class GLWidget(QtOpenGL.QGLWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
+        # GUI controls
         if key == QtCore.Qt.Key_Q:
             QtGui.qApp.quit()
         elif key == QtCore.Qt.Key_N:
             self.new_game()
         elif key == QtCore.Qt.Key_P:
             self.pause_game()
-
+        # Piece control
         if not self.timer.isActive(): return
         if key == QtCore.Qt.Key_Left:
             res = self.piece.move_left(self.hexmap)
@@ -432,7 +423,6 @@ class GLWidget(QtOpenGL.QGLWidget):
                     self.repaint()
             elif res == 0:
                 self.repaint()
-
         elif key == QtCore.Qt.Key_Right:
             res = self.piece.move_right(self.hexmap)
             # Avoid wall collisions
@@ -441,15 +431,12 @@ class GLWidget(QtOpenGL.QGLWidget):
                     self.repaint()
             elif res == 0:
                 self.repaint()
-
         elif key == QtCore.Qt.Key_Down:
             if self.piece.rotate_left(self.hexmap):
                 self.repaint()
-
         elif key == QtCore.Qt.Key_Up:
             if self.piece.rotate_right(self.hexmap):
                 self.repaint()
-
         elif key == QtCore.Qt.Key_Space:
            while self.piece.fall(self.hexmap):
                pass
@@ -476,26 +463,24 @@ class Window(QtGui.QMainWindow):
 
     def create_menus(self):
         fileMenu = self.menu_bar.addMenu('&Game')
-
+        # Start a new game
         newAction = QtGui.QAction('&New', self)
         newAction.setShortcut('Ctrl+N')
         newAction.setStatusTip('New Game')
         newAction.triggered.connect(self.glWidget.new_game)
-
+        fileMenu.addAction(newAction)
+        # Pause the game
         pauseAction = QtGui.QAction('&Pause', self)
         pauseAction.setShortcut('Ctrl+P')
         pauseAction.setStatusTip('Pause Game')
         pauseAction.triggered.connect(self.glWidget.pause_game)
-
+        fileMenu.addAction(pauseAction)
+        # Quit
         quitAction = QtGui.QAction('&Quit', self)
         quitAction.setShortcut('Ctrl+Q')
         quitAction.setStatusTip('Quit Game')
         quitAction.triggered.connect(QtGui.qApp.quit)
-
-        fileMenu.addAction(newAction)
-        fileMenu.addAction(pauseAction)
         fileMenu.addAction(quitAction)
-
 #-------------------------------------------------------------------------------
 # Main
 #-------------------------------------------------------------------------------
