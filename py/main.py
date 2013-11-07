@@ -211,6 +211,11 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.piece = None
         self.score = 0
 
+    def select_piece(self):
+        """ To be used by friendly/adversary AI
+        """
+        return np.random.randint(10)
+
     def status_message(self, s):
         self.parent().status_bar.showMessage(s)
 
@@ -313,7 +318,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.status_message('New Game')
         self.colmap[:,1:] = BGCOL
         self.hexmap[:,1:] = 0
-        self.piece = Piece(np.random.randint(10), self.top_center.copy())
+        self.piece = Piece(self.select_piece(), self.top_center.copy())
         self.repaint()
         self.timer.start(self.speed*1000., self)
         self.score = 0
@@ -354,7 +359,7 @@ class GLWidget(QtOpenGL.QGLWidget):
             i += 1
 
         # Generate new piece
-        self.piece = Piece(np.random.randint(10), self.top_center.copy())
+        self.piece = Piece(self.select_piece(), self.top_center.copy())
         self.repaint()
 
         # Calculate score & speedup
