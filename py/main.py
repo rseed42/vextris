@@ -117,7 +117,6 @@ class Piece(object):
         self.type_id = type_id
         self.pos = pos
         # Use height for slower fall
-        self.height = self.pos[0]
         self.rot_id = rot_id
         self.color = color
         if not self.color:
