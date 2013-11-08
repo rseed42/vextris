@@ -65,6 +65,7 @@ NLOC = np.array([[[0,0],[0,1],[1,1],[1,0],[0,-1],[-1,0],[-1,1],[0,2],[1,2],
                  [[0,0],[0,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[0,2],[1,1],
                   [2,1],[2,0],[2,-1],[1,-2],[0,-2],[-1,-2],[-2,-1],[-2,0],
                   [-2,1],[-1,1]]], dtype=np.int64)
+print NLOC.shape
 SHAPES = []
 SHAPES.append(np.array([[0,1,3,5],[0,2,4,6]],dtype=np.int64))
 SHAPES.append( np.array([[0,1,4,13],[0,2,5,15],[0,3,6,17],[0,4,1,7],
@@ -95,6 +96,9 @@ SPEED_MULT = 0.99
 SCORE_TABLE = [100,200,400,800]
 #-------------------------------------------------------------------------------
 # Messages
+MSG_EG = 'Game Over | Score: {0} | Lines: {1} | Time: {2:0>2}:{3:0>2} s'
+MSG_LN = 'Score: {0} | {1:.1f} ms | Lines: {2}'
+MSG_PAUSE = 'Paused'
 MSG_EG = 'Game Over | Score: {0} | Lines: {1} | Time: {2:0>2}:{3:0>2} s'
 MSG_LN = 'Score: {0} | {1:.1f} ms | Lines: {2}'
 MSG_PAUSE = 'Paused'
@@ -253,9 +257,9 @@ class GLWidget(QtOpenGL.QGLWidget):
                 gl.glColor3f(*self.colmap[i,j])
                 hex = self.hexagon + pos
                 for v in hex:
-                    gl.glVertex3f(v[0],v[1],0)
+                    gl.glVertex2f(v[0],v[1])
                 v = hex[0]
-                gl.glVertex3f(v[0], v[1], 0)
+                gl.glVertex2f(v[0], v[1])
                 gl.glEnd()
         # Draw piece
         if self.piece:
@@ -265,9 +269,9 @@ class GLWidget(QtOpenGL.QGLWidget):
                 gl.glBegin(gl.GL_TRIANGLE_FAN)
                 hex = self.hexagon + pos
                 for v in hex:
-                    gl.glVertex3f(v[0], v[1], 0)
+                    gl.glVertex2f(v[0], v[1])
                 v = hex[0]
-                gl.glVertex3f(v[0], v[1], 0)
+                gl.glVertex2f(v[0], v[1])
                 gl.glEnd()
         # Draw preview piece
         if self.preview_piece:
@@ -277,9 +281,9 @@ class GLWidget(QtOpenGL.QGLWidget):
                 gl.glBegin(gl.GL_TRIANGLE_FAN)
                 hex = self.hexagon + pos
                 for v in hex:
-                    gl.glVertex3f(v[0], v[1], 0)
+                    gl.glVertex2f(v[0], v[1])
                 v = hex[0]
-                gl.glVertex3f(v[0], v[1], 0)
+                gl.glVertex2f(v[0], v[1])
                 gl.glEnd()
         # Draw the hexagon grid
         gl.glColor3f(*HEXGRID_COL)
@@ -289,9 +293,9 @@ class GLWidget(QtOpenGL.QGLWidget):
                 gl.glBegin(gl.GL_LINE_STRIP)
                 hex = self.hexagon + pos
                 for v in hex:
-                    gl.glVertex3f(v[0],v[1],0)
+                    gl.glVertex2f(v[0],v[1])
                 v = hex[0]
-                gl.glVertex3f(v[0], v[1], 0)
+                gl.glVertex2f(v[0], v[1])
                 gl.glEnd()
         # Draw piece border hexagons
         if self.piece:
@@ -301,9 +305,9 @@ class GLWidget(QtOpenGL.QGLWidget):
                 gl.glBegin(gl.GL_LINE_STRIP)
                 hex = self.hexagon + pos
                 for v in hex:
-                    gl.glVertex3f(v[0],v[1],0)
+                    gl.glVertex2f(v[0],v[1])
                 v = hex[0]
-                gl.glVertex3f(v[0], v[1], 0)
+                gl.glVertex2f(v[0], v[1])
                 gl.glEnd()
         # Draw preview piece border hexagons
         if self.preview_piece:
@@ -313,9 +317,9 @@ class GLWidget(QtOpenGL.QGLWidget):
                 gl.glBegin(gl.GL_LINE_STRIP)
                 hex = self.hexagon + pos
                 for v in hex:
-                    gl.glVertex3f(v[0],v[1],0)
+                    gl.glVertex2f(v[0],v[1])
                 v = hex[0]
-                gl.glVertex3f(v[0], v[1], 0)
+                gl.glVertex2f(v[0], v[1])
                 gl.glEnd()
         # Draw the open gl viewport area
         gl.glColor3f(*GREY)
