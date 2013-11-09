@@ -97,7 +97,6 @@ SCORE_TABLE = [100,200,400,800]
 # Messages
 MSG_EG = 'Game Over | Score: {0} | Lines: {1} | Time: {2:0>2}:{3:0>2} s'
 MSG_LN = 'Score: {0} | {1:.1f} ms | Lines: {2}'
-MSG_PAUSE = 'Paused'
 MSG_EG = 'Game Over | Score: {0} | Lines: {1} | Time: {2:0>2}:{3:0>2} s'
 MSG_LN = 'Score: {0} | {1:.1f} ms | Lines: {2}'
 MSG_PAUSE = 'Paused'
