@@ -24,7 +24,6 @@ private:
     QAction* pQuitGame;
     QMenu* pHelpMenu;
     QAction* pAboutGame;
-
 };
 
 #endif
