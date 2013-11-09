@@ -65,7 +65,6 @@ NLOC = np.array([[[0,0],[0,1],[1,1],[1,0],[0,-1],[-1,0],[-1,1],[0,2],[1,2],
                  [[0,0],[0,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[0,2],[1,1],
                   [2,1],[2,0],[2,-1],[1,-2],[0,-2],[-1,-2],[-2,-1],[-2,0],
                   [-2,1],[-1,1]]], dtype=np.int64)
-print NLOC.shape
 SHAPES = []
 SHAPES.append(np.array([[0,1,3,5],[0,2,4,6]],dtype=np.int64))
 SHAPES.append( np.array([[0,1,4,13],[0,2,5,15],[0,3,6,17],[0,4,1,7],
@@ -388,6 +387,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         if self.piece.fall(self.hexmap):
             self.repaint()
             return
+
         # Fill in the grid with current piece
         for (i,j) in self.piece.hexagons:
             self.hexmap[i,j] = 1
@@ -398,22 +398,26 @@ class GLWidget(QtOpenGL.QGLWidget):
             self.timer.stop()
             self.repaint()
             return
+
         # Scan for complete lines, starting one above the ground
+        self.timer.stop()
         i = 1
         rm_lines_count = 0
         while i < self.hex_num_vert:
-            if self.hexmap[:,i].sum() == self.hex_num:
-                rm_lines_count += 1
-                # Pull down all the rows above i
-                for j in xrange(i, self.hex_num_vert-1):
-                    for k in xrange(self.hex_num):
-                        self.colmap[k,j] = self.colmap[k,j+1]
-                        self.hexmap[k,j] = self.hexmap[k,j+1]
-            i += 1
+            if self.hexmap[:,i].sum() != self.hex_num:
+                i += 1
+                continue
+            rm_lines_count += 1
+            # Pull down all the rows above i
+            for j in xrange(i, self.hex_num_vert-1):
+                for k in xrange(self.hex_num):
+                    self.colmap[k,j] = self.colmap[k,j+1]
+                    self.hexmap[k,j] = self.hexmap[k,j+1]
         # Generate new piece
         self.piece = self.preview_piece
         self.preview_piece = Piece(self.select_piece(), self.top_center.copy())
         self.repaint()
+        self.timer.start(self.speed*1000., self)
         # Calculate score & speedup
         if not rm_lines_count:
             return
@@ -426,8 +430,6 @@ class GLWidget(QtOpenGL.QGLWidget):
         # Speedup
         self.speed = (SPEED_MULT**rm_lines_count)*self.speed
         self.status_message(self.msg_line())
-        self.timer.stop()
-        self.timer.start(self.speed*1000., self)
 
     def keyPressEvent(self, event):
         key = event.key()
