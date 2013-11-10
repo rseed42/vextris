@@ -55,6 +55,9 @@ private:
     QString msgGameOver();
     Vecf2 hexVerticesAt(Vecf pos);
     int selectPiece();
+    // Object creation
+    GLuint createHexGrid();
+    GLuint createHexagons();
     // GUI Definitions
     QSize wndSize;
     float speed;
@@ -98,5 +101,10 @@ private:
     int line_count;
     Vecf3 colorMap;
     Veci2 hexMap;
+    // GL call lists
+    GLuint hexgridList;
+    GLuint hexList;
+    GLuint pieceList;
+    GLuint previewList;
 };
 #endif

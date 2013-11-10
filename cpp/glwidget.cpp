@@ -81,12 +81,33 @@ void GLWidget::initializeGL(){
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    // Create display lists
+    hexgridList = createHexGrid();
+    hexList = createHexagons();
 }
 //------------------------------------------------------------------------------
-void GLWidget::paintGL(){
-    // Set up
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // Draw the hexagons
+GLuint GLWidget::createHexGrid(){
+    GLuint list = glGenLists(1);
+    glNewList(list, GL_COMPILE);
+    // Draw the hexagon grid
+    glColor3f(HexGridColor[0], HexGridColor[1], HexGridColor[2]);
+    for(int i=0; i<HEX_NUM; i++){
+        for(int j=0; j<hex_num_vert+EXTRA_FIELD_ROWS; j++){
+            glBegin(GL_LINE_STRIP);
+            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
+            for(int k=0; k<6; k++)
+                glVertex2f(hex[k][0], hex[k][1]);
+            glVertex2f(hex[0][0], hex[0][1]);
+            glEnd();
+        }
+    }
+    glEndList();
+    return list;
+}
+//------------------------------------------------------------------------------
+GLuint GLWidget::createHexagons(){
+    GLuint list = glGenLists(1);
+    glNewList(list, GL_COMPILE);
     for(int i=0; i<HEX_NUM; i++){
         for(int j=0; j<hex_num_vert+EXTRA_FIELD_ROWS; j++){
             glBegin(GL_TRIANGLE_FAN);
@@ -97,6 +118,27 @@ void GLWidget::paintGL(){
             glEnd();
         }
     }
+    glEndList();
+    return list;
+}
+//------------------------------------------------------------------------------
+void GLWidget::paintGL(){
+    // Set up
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Draw the hexagons
+/*
+    for(int i=0; i<HEX_NUM; i++){
+        for(int j=0; j<hex_num_vert+EXTRA_FIELD_ROWS; j++){
+            glBegin(GL_TRIANGLE_FAN);
+            glColor3f(colorMap[i][j][0], colorMap[i][j][1], colorMap[i][j][2]);
+            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
+            for(int k=0; k<6; k++)
+                glVertex2f(hex[k][0], hex[k][1]);
+            glEnd();
+        }
+    }
+*/
+    glCallList(hexList);
     // Draw the piece
     if(pPiece != NULL){
         Vecf* pCol = pPiece->getColor();
@@ -132,7 +174,7 @@ void GLWidget::paintGL(){
             glEnd();
         }
     }
-
+/*
     // Draw the hexagon grid
     glColor3f(HexGridColor[0], HexGridColor[1], HexGridColor[2]);
     for(int i=0; i<HEX_NUM; i++){
@@ -145,6 +187,9 @@ void GLWidget::paintGL(){
             glEnd();
         }
     }
+
+*/
+    glCallList(hexgridList);
     // Draw piece border hexagons
     if(pPiece != NULL){
         glColor3f(White[0], White[1], White[2]);
@@ -223,6 +268,8 @@ void GLWidget::newGame(){
             hexMap[i][j] = 0;
         }
     }
+    glDeleteLists(hexList, 1);
+    hexList = createHexagons();
     delete pPiece;
     delete pPreviewPiece;
     int type_id = selectPiece();
@@ -299,6 +346,8 @@ void GLWidget::timerEvent(QTimerEvent *){
     if(gameOver){
         statusMsg(msgGameOver());
         timer.stop();
+        glDeleteLists(hexList, 1);
+        hexList = createHexagons();
         repaint();
         return;
     }
@@ -323,12 +372,17 @@ void GLWidget::timerEvent(QTimerEvent *){
         }
         rm_lines_count++;
     }
+    // Check this
     timer.stop();
+    // Update hexagon display list
+    glDeleteLists(hexList, 1);
+    hexList = createHexagons();
     // Generate next piece
     delete pPiece;
     pPiece = pPreviewPiece;
     int type_id = selectPiece();
     pPreviewPiece = new Piece(type_id, topCenter, pieceColors[type_id]);
+
     repaint();
     timer.start((int)speed, this);
     // Calculate score & speedup
