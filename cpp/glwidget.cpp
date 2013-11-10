@@ -93,7 +93,6 @@ void GLWidget::paintGL(){
             Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
             for(int k=0; k<6; k++)
                 glVertex2f(hex[k][0], hex[k][1]);
-//            glVertex2f(hex[0][0], hex[0][1]);
             glEnd();
         }
     }
@@ -110,7 +109,6 @@ void GLWidget::paintGL(){
             Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
             for(int l=0; l<6; l++)
                 glVertex2f(hex[l][0], hex[l][1]);
-//            glVertex2f(hex[0][0], hex[0][1]);
             glEnd();
         }
     }
