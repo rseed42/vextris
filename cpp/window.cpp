@@ -18,35 +18,35 @@ Window::Window(){
 }
 //------------------------------------------------------------------------------
 void Window::createActions(){
-    pNewGame = new QAction(tr("&New Game"), this);
+    pNewGame = new QAction("&New Game", this);
     pNewGame->setShortcut(QKeySequence(Qt::Key_N));
-    pNewGame->setStatusTip(tr("Start a new game"));
+    pNewGame->setStatusTip("Start a new game");
     connect(pNewGame, SIGNAL(triggered()), glWidget, SLOT(newGame()));
 
-    pPauseGame = new QAction(tr("&Pause Game"), this);
+    pPauseGame = new QAction("&Pause Game", this);
     pPauseGame->setShortcut(QKeySequence(Qt::Key_P));
-    pPauseGame->setStatusTip(tr("Pause the current game"));
+    pPauseGame->setStatusTip("Pause the current game");
     connect(pPauseGame, SIGNAL(triggered()), glWidget, SLOT(pauseGame()));
 
-    pQuitGame = new QAction(tr("&Quit"), this);
+    pQuitGame = new QAction("&Quit", this);
     pQuitGame->setShortcut(QKeySequence(Qt::Key_Q));
-    pQuitGame->setStatusTip(tr("Quit VexTris"));
+    pQuitGame->setStatusTip("Quit VexTris");
     connect(pQuitGame, SIGNAL(triggered()), this, SLOT(close()));
 
-    pAboutGame = new QAction(tr("&About"), this);
+    pAboutGame = new QAction("&About", this);
     pAboutGame->setShortcut(QKeySequence(Qt::Key_A));
-    pAboutGame->setStatusTip(tr("About VexTrix"));
+    pAboutGame->setStatusTip("About VexTrix");
     connect(pAboutGame, SIGNAL(triggered()), this, SLOT(aboutVexTris()));
 }
 //------------------------------------------------------------------------------
 void Window::createMenus(){
-    pFileMenu = menuBar()->addMenu(tr("&Game"));
+    pFileMenu = menuBar()->addMenu("&Game");
     pFileMenu->addAction(pNewGame);
     pFileMenu->addAction(pPauseGame);
     pFileMenu->addSeparator();
     pFileMenu->addAction(pQuitGame);
 
-    pHelpMenu = menuBar()->addMenu(tr("&Help"));
+    pHelpMenu = menuBar()->addMenu("&Help");
     pHelpMenu->addAction(pAboutGame);
 }
 //------------------------------------------------------------------------------
