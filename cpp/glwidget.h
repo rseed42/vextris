@@ -32,8 +32,10 @@ class GLWidget : public QGLWidget{
 public:
     GLWidget(QWidget *parent = 0);
     ~GLWidget();
-    void new_game();
-    void pause_game();
+
+public slots:
+    void newGame();
+    void pauseGame();
 
 protected:
     void initializeGL();

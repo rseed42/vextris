@@ -12,10 +12,14 @@ class Window : public QMainWindow{
 public:
     Window();
 
+private slots:
+    void aboutVexTris();
+
 private:
     void createActions();
     void createMenus();
     void createStatusBar();
+    //
     QSize* wndSize;
     GLWidget* glWidget;
     QMenu* pFileMenu;

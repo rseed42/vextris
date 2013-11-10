@@ -212,7 +212,7 @@ void GLWidget::resizeGL(int width, int height){
     glOrtho(0, 1, 0, field[1], -1, 1);
 }
 //------------------------------------------------------------------------------
-void GLWidget::new_game(){
+void GLWidget::newGame(){
     speed = START_SPEED;
     // clean up the field
     for(int i=0; i<HEX_NUM; i++){
@@ -235,7 +235,7 @@ void GLWidget::new_game(){
     game_time.start();
 }
 //------------------------------------------------------------------------------
-void GLWidget::pause_game(){
+void GLWidget::pauseGame(){
     if(timer.isActive()){
         timer.stop();
         statusMsg(QString("Paused"));
@@ -248,14 +248,6 @@ void GLWidget::pause_game(){
 //------------------------------------------------------------------------------
 void GLWidget::keyPressEvent(QKeyEvent *e){
     int key = e->key();
-    // gui controls (use switch here)
-    if(key == Qt::Key_Q)
-        qApp->quit();
-    else if(key == Qt::Key_N)
-        new_game();
-    else if(key == Qt::Key_P)
-        pause_game();
-    // piece control
     if(!timer.isActive()) return;
     // USE ENUMS FOR COLLISION RESULTS!
     if(key == Qt::Key_Left){
