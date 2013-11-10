@@ -126,18 +126,6 @@ void GLWidget::paintGL(){
     // Set up
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Draw the hexagons
-/*
-    for(int i=0; i<HEX_NUM; i++){
-        for(int j=0; j<hex_num_vert+EXTRA_FIELD_ROWS; j++){
-            glBegin(GL_TRIANGLE_FAN);
-            glColor3f(colorMap[i][j][0], colorMap[i][j][1], colorMap[i][j][2]);
-            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
-            for(int k=0; k<6; k++)
-                glVertex2f(hex[k][0], hex[k][1]);
-            glEnd();
-        }
-    }
-*/
     glCallList(hexList);
     // Draw the piece
     if(pPiece != NULL){
@@ -174,21 +162,7 @@ void GLWidget::paintGL(){
             glEnd();
         }
     }
-/*
     // Draw the hexagon grid
-    glColor3f(HexGridColor[0], HexGridColor[1], HexGridColor[2]);
-    for(int i=0; i<HEX_NUM; i++){
-        for(int j=0; j<hex_num_vert+EXTRA_FIELD_ROWS; j++){
-            glBegin(GL_LINE_STRIP);
-            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
-            for(int k=0; k<6; k++)
-                glVertex2f(hex[k][0], hex[k][1]);
-            glVertex2f(hex[0][0], hex[0][1]);
-            glEnd();
-        }
-    }
-
-*/
     glCallList(hexgridList);
     // Draw piece border hexagons
     if(pPiece != NULL){
@@ -280,7 +254,7 @@ void GLWidget::newGame(){
     score = 0;
     line_count = 0;
     statusMsg(msgLine());
-    timer.start((int)speed, this);
+    timer.staprt((int)speed, this);
     game_time.start();
 }
 //------------------------------------------------------------------------------
