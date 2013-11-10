@@ -25,11 +25,8 @@ private:
     static const Veci3 SHAPES;
     Veci2* translateHexagons(Veci2 *hexagons, Veci &new_pos);
     Veci2* buildHexagons(Veci &pos, int rot_id);
-//    int collision(Veci2& hexagons, Veci2& hexMap);
-//    int collision(Veci2* hexagons, Veci2& hexMap);
     coll_check collision(Veci2* hexagons, Veci2& hexMap);
     bool rotate(int left_right, Veci2& hexMap);
-//    int move(int left_right, Veci2& hexMap, int vert=0);
     coll_check move(int left_right, Veci2& hexMap, int vert=0);
     int type_id;
     Veci pos;

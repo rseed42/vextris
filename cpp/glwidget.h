@@ -87,12 +87,8 @@ private:
     Vecf2 pieceColors;
     // Data
     Veci scoreTable;
-
-//    Vecf& refBgColor;
     //Vecf& refPreviewPieceBorderColor;
     Vecf* pBgColor;
-//    Vecf* pPreviewPieceBorderColor;
-
     // Game objects
     Piece* pPiece;
     Piece* pPreviewPiece;

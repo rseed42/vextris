@@ -9,8 +9,6 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     Magenta{1,0,1},Orange{1,0.5,0},Purple{0.63,0.12,0.94},LBlue{0.68,0.85,0.9},
     Cyan{0,1,1},Yellow{1,1,0},HexGridColor(3,0.1),AreaFrameColor(3,0.25),
     pieceColors{Orange,Blue,Purple,Green,Magenta,Cyan,Yellow,Red,LBlue,Grey},
-    // refBgColor(Black),refPreviewPieceBorderColor(White),
-//    refBgColor(Black),
     scoreTable{100,200,400,800},score(0), line_count(0),
     colorMap(HEX_NUM), hexMap(HEX_NUM)
     {
@@ -35,7 +33,6 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     // need to prepare the maps
     for(int i=0; i<HEX_NUM; i++){
         for(int j=0; j< hex_num_vert + EXTRA_FIELD_ROWS; j++)
-//            colorMap[i].append(refBgColor);
             colorMap[i].append(*pBgColor);
         hexMap[i].fill(0, hex_num_vert + EXTRA_FIELD_ROWS);
     }
@@ -79,7 +76,6 @@ int GLWidget::selectPiece(){
 //------------------------------------------------------------------------------
 void GLWidget::initializeGL(){
     glShadeModel(GL_SMOOTH);
-//    glClearColor(refBgColor[0], refBgColor[1], refBgColor[2], 0.0);
     glClearColor((*pBgColor)[0], (*pBgColor)[1], (*pBgColor)[2], 0.0);
     glClearDepth(1.0);
     glEnable(GL_DEPTH_TEST);
@@ -103,17 +99,12 @@ void GLWidget::paintGL(){
     }
     // Draw the piece
     if(pPiece != NULL){
-//        Vecf col = pPiece->getColor();
         Vecf* pCol = pPiece->getColor();
-//        glColor3f(col[0], col[1], col[2]);
         glColor3f((*pCol)[0], (*pCol)[1], (*pCol)[2]);
         int i,j;
-//        Veci2 hexagons = pPiece->getHexagons();
         Veci2* pHexagons = pPiece->getHexagons();
         for(int k=0; k<4; k++){
             glBegin(GL_TRIANGLE_FAN);
-//            i = hexagons[k][0];
-//            j = hexagons[k][1];
             i = (*pHexagons)[k][0];
             j = (*pHexagons)[k][1];
             Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
@@ -124,17 +115,12 @@ void GLWidget::paintGL(){
     }
     // Draw the preview piece
     if(pPreviewPiece != NULL){
-//        Vecf col = pPreviewPiece->getColor();
         Vecf* pCol = pPreviewPiece->getColor();
-//        glColor3f(col[0], col[1], col[2]);
         glColor3f((*pCol)[0], (*pCol)[1], (*pCol)[2]);
         int i,j;
-//        Veci2 hexagons = pPreviewPiece->getHexagons();
         Veci2* pHexagons = pPreviewPiece->getHexagons();
         for(int k=0; k<4; k++){
             glBegin(GL_TRIANGLE_FAN);
-//            i = hexagons[k][0];
-//            j = hexagons[k][1];
             i = (*pHexagons)[k][0];
             j = (*pHexagons)[k][1];
             Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
@@ -163,12 +149,9 @@ void GLWidget::paintGL(){
     if(pPiece != NULL){
         glColor3f(White[0], White[1], White[2]);
         int i,j;
-//        Veci2 hexagons = pPiece->getHexagons();
         Veci2* hexagons = pPiece->getHexagons();
         for(int k=0; k<4; k++){
             glBegin(GL_LINE_STRIP);
-//            i = hexagons[k][0];
-//            j = hexagons[k][1];
             i = (*hexagons)[k][0];
             j = (*hexagons)[k][1];
             Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
@@ -182,12 +165,9 @@ void GLWidget::paintGL(){
     if(pPreviewPiece != NULL){
         glColor3f(White[0], White[1], White[2]);
         int i,j;
-//        Veci2 hexagons = pPreviewPiece->getHexagons();
         Veci2* hexagons = pPreviewPiece->getHexagons();
         for(int k=0; k<4; k++){
             glBegin(GL_LINE_STRIP);
-//            i = hexagons[k][0];
-//            j = hexagons[k][1];
             i = (*hexagons)[k][0];
             j = (*hexagons)[k][1];
             Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
@@ -239,7 +219,6 @@ void GLWidget::newGame(){
     // clean up the field
     for(int i=0; i<HEX_NUM; i++){
         for(int j=1; j<hex_num_vert+EXTRA_FIELD_ROWS; j++){
-//            colorMap[i][j] = refBgColor;
             colorMap[i][j] = *pBgColor;
             hexMap[i][j] = 0;
         }
@@ -278,26 +257,12 @@ void GLWidget::keyPressEvent(QKeyEvent *e){
         if(result == PIECE_HEAP){
             if(pPiece->move_down_left(hexMap) == NO_COLLISION) repaint();
         }else if(result == NO_COLLISION) repaint();
-/*
-        int res = pPiece->move_left(hexMap);
-        // avoid wall collisions
-        if(res == 3){
-            if(pPiece->move_down_left(hexMap) == 0) repaint();
-        }else if(res == 0) repaint();
-*/
     }
     else if(key == Qt::Key_Right){
         coll_check result = pPiece->move_right(hexMap);
         if(result == PIECE_HEAP){
             if(pPiece->move_down_right(hexMap) == NO_COLLISION) repaint();
         }else if(result == NO_COLLISION) repaint();
-/*
-        int res = pPiece->move_right(hexMap);
-        // avoid wall collisions
-        if(res == 3){
-            if(pPiece->move_down_right(hexMap) == 0) repaint();
-        }else if(res == 0) repaint();
-*/
     }
     else if(key == Qt::Key_Down){
         if(pPiece->rotate_left(hexMap)) repaint();
@@ -321,15 +286,11 @@ void GLWidget::timerEvent(QTimerEvent *){
     // Collision occurred, rasterize piece to map
     int i,j,k,l;
     bool gameOver = false;
-//    Veci2 hexagons = pPiece->getHexagons();
     Veci2 *hexagons = pPiece->getHexagons();
     for(k=0; k<4; k++){
-//        i = hexagons[k][0];
-//        j = hexagons[k][1];
         i = (*hexagons)[k][0];
         j = (*hexagons)[k][1];
         hexMap[i][j] = 1;
-//        colorMap[i][j] = pPiece->getColor();
         colorMap[i][j] = *pPiece->getColor();
         // Game Over
         if(j >= hex_num_vert-1) gameOver = true;

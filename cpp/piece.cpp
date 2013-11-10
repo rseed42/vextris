@@ -19,7 +19,6 @@ const Veci3 Piece::SHAPES = {
 //------------------------------------------------------------------------------
 Piece::Piece(int type_id, Veci pos, Vecf color, int rot_id):
              type_id(type_id), pos(pos), color(color), rot_id(rot_id){
-    //    hexagons(buildHexagons(pos, rot_id)){
     pHexagons = buildHexagons(pos, rot_id);
 }
 //------------------------------------------------------------------------------
@@ -27,13 +26,9 @@ Piece::~Piece(){
     delete pHexagons;
 }
 //------------------------------------------------------------------------------
-//Veci2* Piece::translate(Veci2 *hexagons, Veci &new_pos){
 Veci2* Piece::translateHexagons(Veci2 *hexagons, Veci &new_pos){
     // Takes the hexagons and changes their coordinates according to new_pos,
-//    Veci2 newHexagons(4);
     for(int i=0; i<4; i++){
-//        newHexagons[i] = addi(hexagons[i], new_pos);
-//    return newHexagons;
         (*hexagons)[i][0] += new_pos[0];
         (*hexagons)[i][1] += new_pos[1];
     }
@@ -47,35 +42,15 @@ Veci2* Piece::buildHexagons(Veci &new_pos, int new_rot_id){
         hex_id = SHAPES[type_id][new_rot_id][i];
         hexagons->append(NEIGHBORS[new_pos[0]&1][hex_id]);
     }
-//    return translate(newHexagons, new_pos);
     return translateHexagons(hexagons, new_pos);
 }
 //------------------------------------------------------------------------------
-//int Piece::collision(Veci2& hexagons, Veci2& hexMap){
-//int Piece::collision(Veci2* hexagons, Veci2& hexMap){
 coll_check Piece::collision(Veci2* hexagons, Veci2& hexMap){
-/*
     // Somewhat different from the Python version due to lack of syntax
     // Check border collisions first
     for(int i=0; i<4; i++){
-        if (hexagons[i][0] < 0) return 1;
-        // Don't forget that hexMap is transposed to what we imagine
-        if (hexagons[i][0] > hexMap.size()-1) return 2;
-    }
-    // Collision with the piece heap
-    int i, j;
-    for (int k=0; k<4; k++){
-        i = hexagons[k][0];
-        j = hexagons[k][1];
-        if(hexMap[i][j] > 0) return 3;
-    }*/
-    // Somewhat different from the Python version due to lack of syntax
-    // Check border collisions first
-    for(int i=0; i<4; i++){
-//        if ((*hexagons)[i][0] < 0) return 1;
         if ((*hexagons)[i][0] < 0) return LEFT_BORDER;
         // Don't forget that hexMap is transposed to what we imagine
-//        if ((*hexagons)[i][0] > hexMap.size()-1) return 2;
         if ((*hexagons)[i][0] > hexMap.size()-1) return RIGHT_BORDER;
     }
     // Collision with the piece heap
@@ -83,23 +58,12 @@ coll_check Piece::collision(Veci2* hexagons, Veci2& hexMap){
     for (int k=0; k<4; k++){
         i = (*hexagons)[k][0];
         j = (*hexagons)[k][1];
-//        if(hexMap[i][j] > 0) return 3;
         if(hexMap[i][j] > 0) return PIECE_HEAP;
     }
-    //return 0;
     return NO_COLLISION;
 }
 //------------------------------------------------------------------------------
 bool Piece::rotate(int left_right, Veci2& hexMap){
-/*
-    int rid = rot_id + left_right;
-    int rot_shapes = SHAPES[type_id].size();
-    int new_rot_id = rid < 0 ? rot_shapes - 1 : rid % rot_shapes;
-    Veci2 newHexagons = buildHexagons(pos, new_rot_id);
-    if(collision(newHexagons, hexMap)) return false;
-    rot_id = new_rot_id;
-    hexagons = newHexagons;
-*/
     int rid = rot_id + left_right;
     // The "tetrahedron" tetromino has only 2 rotational states
     int shapes_count = SHAPES[type_id].size();
@@ -112,17 +76,7 @@ bool Piece::rotate(int left_right, Veci2& hexMap){
     return true;
 }
 //------------------------------------------------------------------------------
-//int Piece::move(int left_right, Veci2& hexMap, int vert){
 coll_check Piece::move(int left_right, Veci2& hexMap, int vert){
-/*
-    Veci new_pos = addi(pos, Veci{left_right, vert});
-    Veci2 newHexagons = buildHexagons(new_pos, rot_id);
-    int coll_code = collision(newHexagons, hexMap);
-    if (coll_code > 0) return coll_code;
-    pos = new_pos;
-    hexagons = newHexagons;
-*/
-//    return 0;
     Veci new_pos = addi(pos, Veci{left_right, vert});
     Veci2* hexagons = buildHexagons(new_pos, rot_id);
     coll_check result = collision(hexagons, hexMap);
@@ -134,13 +88,6 @@ coll_check Piece::move(int left_right, Veci2& hexMap, int vert){
 }
 //------------------------------------------------------------------------------
 bool Piece::fall(Veci2& hexMap){
-/*
-    Veci new_pos = {pos[0], pos[1] - 1};
-    Veci2 newHexagons = buildHexagons(new_pos, rot_id);
-    if(collision(newHexagons, hexMap)) return false;
-    pos = new_pos;
-    hexagons = newHexagons;
-*/
     Veci new_pos{pos[0], pos[1]-1};
     Veci2* hexagons = buildHexagons(new_pos, rot_id);
     if(collision(hexagons, hexMap)) return false;
