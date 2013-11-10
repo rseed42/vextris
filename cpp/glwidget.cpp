@@ -9,10 +9,13 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     Magenta{1,0,1},Orange{1,0.5,0},Purple{0.63,0.12,0.94},LBlue{0.68,0.85,0.9},
     Cyan{0,1,1},Yellow{1,1,0},HexGridColor(3,0.1),AreaFrameColor(3,0.25),
     pieceColors{Orange,Blue,Purple,Green,Magenta,Cyan,Yellow,Red,LBlue,Grey},
-    refBgColor(Black),refPreviewPieceBorderColor(White),
+    // refBgColor(Black),refPreviewPieceBorderColor(White),
+//    refBgColor(Black),
     scoreTable{100,200,400,800},score(0), line_count(0),
     colorMap(HEX_NUM), hexMap(HEX_NUM)
     {
+    // Assign special colors
+    pBgColor = &Black;
     // Initialize GUI variables
     field = {FIELD_WIDTH, (float)(wndSize.height()) / wndSize.width()};
     areaSize = {1, field[1]};
@@ -32,7 +35,8 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     // need to prepare the maps
     for(int i=0; i<HEX_NUM; i++){
         for(int j=0; j< hex_num_vert + EXTRA_FIELD_ROWS; j++)
-            colorMap[i].append(refBgColor);
+//            colorMap[i].append(refBgColor);
+            colorMap[i].append(*pBgColor);
         hexMap[i].fill(0, hex_num_vert + EXTRA_FIELD_ROWS);
     }
     // Fill in the ground
@@ -40,7 +44,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
         colorMap[i][0] = HexGridColor;
         hexMap[i][0] = 1;
     }
-    // Careful here
+    // Pieces get created on a new game
     pPiece = NULL;
     pPreviewPiece = NULL;
     qsrand((uint)QTime::currentTime().msec());
@@ -75,7 +79,8 @@ int GLWidget::selectPiece(){
 //------------------------------------------------------------------------------
 void GLWidget::initializeGL(){
     glShadeModel(GL_SMOOTH);
-    glClearColor(refBgColor[0], refBgColor[1], refBgColor[2], 0.0);
+//    glClearColor(refBgColor[0], refBgColor[1], refBgColor[2], 0.0);
+    glClearColor((*pBgColor)[0], (*pBgColor)[1], (*pBgColor)[2], 0.0);
     glClearDepth(1.0);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -217,7 +222,8 @@ void GLWidget::newGame(){
     // clean up the field
     for(int i=0; i<HEX_NUM; i++){
         for(int j=1; j<hex_num_vert+EXTRA_FIELD_ROWS; j++){
-            colorMap[i][j] = refBgColor;
+//            colorMap[i][j] = refBgColor;
+            colorMap[i][j] = *pBgColor;
             hexMap[i][j] = 0;
         }
     }

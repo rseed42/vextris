@@ -85,11 +85,14 @@ private:
     Vecf HexGridColor;
     Vecf AreaFrameColor;
     Vecf2 pieceColors;
-    Vecf2 arTest;
-    Vecf& refBgColor;
-    Vecf& refPreviewPieceBorderColor;
     // Data
     Veci scoreTable;
+
+//    Vecf& refBgColor;
+    //Vecf& refPreviewPieceBorderColor;
+    Vecf* pBgColor;
+//    Vecf* pPreviewPieceBorderColor;
+
     // Game objects
     Piece* pPiece;
     Piece* pPreviewPiece;
