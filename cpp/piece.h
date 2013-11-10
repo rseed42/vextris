@@ -8,14 +8,14 @@ class Piece{
 public:
     Piece(int type_id, Veci pos, Vecf color, int rot_id=0);
     ~Piece();
-    Vecf getColor(){ return color; }
-    Veci2 getHexagons(){ return hexagons; }
+    Vecf* getColor(){ return &color; }
+    Veci2* getHexagons(){ return pHexagons; }
     bool rotate_left(Veci2& hexMap){ return rotate(-1, hexMap); }
     bool rotate_right(Veci2& hexMap){ return rotate(1, hexMap); }
-    int move_left(Veci2& hexMap){ return move(-1, hexMap); }
-    int move_down_left(Veci2& hexMap){ return move(-1, hexMap, -1); }
-    int move_right(Veci2& hexMap){ return move(1, hexMap); }
-    int move_down_right(Veci2& hexMap){ return move(1, hexMap, -1); }
+    coll_check move_left(Veci2& hexMap){ return move(-1, hexMap); }
+    coll_check move_down_left(Veci2& hexMap){ return move(-1, hexMap, -1); }
+    coll_check move_right(Veci2& hexMap){ return move(1, hexMap); }
+    coll_check move_down_right(Veci2& hexMap){ return move(1, hexMap, -1); }
     bool fall(Veci2& hexMap);
 
 private:
@@ -23,15 +23,18 @@ private:
     // basically using the same thing
     static const Veci3 NEIGHBORS;
     static const Veci3 SHAPES;
-    Veci2 translate(Veci2 &hexagons, Veci &new_pos);
-    Veci2 buildHexagons(Veci &pos, int rot_id);
-    int collision(Veci2& hexagons, Veci2& hexMap);
+    Veci2* translateHexagons(Veci2 *hexagons, Veci &new_pos);
+    Veci2* buildHexagons(Veci &pos, int rot_id);
+//    int collision(Veci2& hexagons, Veci2& hexMap);
+//    int collision(Veci2* hexagons, Veci2& hexMap);
+    coll_check collision(Veci2* hexagons, Veci2& hexMap);
     bool rotate(int left_right, Veci2& hexMap);
-    int move(int left_right, Veci2& hexMap, int vert=0);
+//    int move(int left_right, Veci2& hexMap, int vert=0);
+    coll_check move(int left_right, Veci2& hexMap, int vert=0);
     int type_id;
     Veci pos;
     Vecf color;
     int rot_id;
-    Veci2 hexagons;
+    Veci2* pHexagons;
 };
 #endif

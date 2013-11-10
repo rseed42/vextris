@@ -3,6 +3,8 @@
 //------------------------------------------------------------------------------
 #include <QtOpenGL>
 //------------------------------------------------------------------------------
+enum coll_check { NO_COLLISION, LEFT_BORDER, RIGHT_BORDER, PIECE_HEAP};
+//------------------------------------------------------------------------------
 // We could use smaller integers, but this program doesn't take up that many
 // resources anyway and the code is easier to read.
 using Veci = QVector<GLint>;
