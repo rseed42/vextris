@@ -54,7 +54,7 @@ QString GLWidget::msgGameOver(){
     int play_time = game_time.elapsed()/1000;
     int pt_min = play_time/60;
     int pt_sec = play_time % 60;
-    return QString().sprintf("Game Over | Score: %d | Lines: %d | Time: %02d:%02d",
+    return QString().sprintf("Game Over | Score: %d | Lines: %d | Time: %02d:%02d s",
                      score, line_count, pt_min, pt_sec);
 }
 //------------------------------------------------------------------------------

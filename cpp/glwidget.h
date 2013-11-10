@@ -50,7 +50,7 @@ private:
     void statusMsg(QString msg){
              ((QMainWindow*)parentWidget())->statusBar()->showMessage(msg);}
     QString msgLine(){
-                     return QString().sprintf("Score: %d | %.1f ms | Lines: %d",
+                     return QString().sprintf("Score: %d | Speed: %.1f ms | Lines: %d",
                                               score, speed, line_count);}
     QString msgGameOver();
     Vecf2 hexVerticesAt(Vecf pos);
