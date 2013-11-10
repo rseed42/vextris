@@ -243,7 +243,6 @@ void GLWidget::pauseGame(){
 void GLWidget::keyPressEvent(QKeyEvent *e){
     int key = e->key();
     if(!timer.isActive()) return;
-// SWITCH
     if(key == Qt::Key_Left){
         coll_check result = pPiece->move_left(hexMap);
         if(result == PIECE_HEAP){
