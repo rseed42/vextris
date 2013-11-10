@@ -55,6 +55,18 @@ void Window::createStatusBar(){
 }
 //------------------------------------------------------------------------------
 void Window::aboutVexTris(){
-   QString msg("<h4>VexTris</h4><div>Copyright (c) 2013 Venelin Petkov</div>");
+   QString msg("<h4>VexTris (c) 2013 Venelin Petkov</h4>"\
+   "<h5>Directions</h5>"\
+   "<p>Use the arrow keys to rotate and move the falling piece.</p>"\
+   "<h5>Score Table</h5>"\
+   "<table><tr><th>#Lines</th><th>Score</th>"\
+   "<tr><td>1</td><td>100</td>"\
+   "<tr><td>2</td><td>200</td>"\
+   "<tr><td>3</td><td>400</td>"\
+   "<tr><td>>=4</td><td>800</td></table>"\
+   "<h5>More Information</h5>"\
+   "<p>Homepage: <a href='https://github.com/rseed42/vextris/wiki'>"\
+   "http://github.com/rseed42/vextris</a></p>"\
+   );
    QMessageBox::about(this, "About VexTris", msg);
 }
