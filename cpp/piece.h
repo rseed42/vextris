@@ -31,7 +31,7 @@ private:
     int type_id;
     Veci pos;
     Vecf color;
-    char rot_id;
+    int rot_id;
     Veci2 hexagons;
 };
 #endif
