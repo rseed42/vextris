@@ -34,3 +34,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# More ignores
+Makefile
+*.o
+moc_*
+vextris
