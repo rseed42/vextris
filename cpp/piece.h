@@ -10,6 +10,7 @@ public:
     ~Piece();
     Vecf* getColor(){ return &color; }
     Veci2* getHexagons(){ return pHexagons; }
+    Veci* getPos(){ return &pos; }
     bool rotate_left(Veci2& hexMap){ return rotate(-1, hexMap); }
     bool rotate_right(Veci2& hexMap){ return rotate(1, hexMap); }
     coll_check move_left(Veci2& hexMap){ return move(-1, hexMap); }

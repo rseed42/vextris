@@ -56,8 +56,10 @@ private:
     Vecf2 hexVerticesAt(Vecf pos);
     int selectPiece();
     // Object creation
+    void drawPiece(Piece* piece, Vecf offset=Vecf{0,0});
     GLuint createHexGrid();
     GLuint createHexagons();
+    GLuint createPreviewPiece();
     // GUI Definitions
     QSize wndSize;
     float speed;
@@ -103,7 +105,6 @@ private:
     // GL call lists
     GLuint hexgridList;
     GLuint hexList;
-    GLuint pieceList;
     GLuint previewList;
 };
 #endif

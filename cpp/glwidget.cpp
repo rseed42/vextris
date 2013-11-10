@@ -122,84 +122,52 @@ GLuint GLWidget::createHexagons(){
     return list;
 }
 //------------------------------------------------------------------------------
+GLuint GLWidget::createPreviewPiece(){
+    GLuint list = glGenLists(1);
+    glNewList(list, GL_COMPILE);
+    drawPiece(pPreviewPiece, previewOffset);
+    glEndList();
+    return list;
+}
+//------------------------------------------------------------------------------
+void GLWidget::drawPiece(Piece* piece, Vecf offset){
+    Vecf* pCol = piece->getColor();
+    Veci2* pHexagons = piece->getHexagons();
+    int i,j;
+    for(int k=0; k<4; k++){
+        glColor3f((*pCol)[0], (*pCol)[1], (*pCol)[2]);
+        glBegin(GL_TRIANGLE_FAN);
+        // Translate the central coordinate to the origin, so that
+        // we can easily translate the whole piece by pos using matrices
+        i = (*pHexagons)[k][0];
+        j = (*pHexagons)[k][1];
+        Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
+        for(int l=0; l<6; l++)
+            glVertex2f(hex[l][0]+offset[0], hex[l][1]+offset[1]);
+        glEnd();
+        // Draw border
+        glColor3f(White[0], White[1], White[2]);
+        glBegin(GL_LINE_STRIP);
+        for(int l=0; l<6; l++)
+            glVertex2f(hex[l][0]+offset[0], hex[l][1]+offset[1]);
+        glVertex2f(hex[0][0]+offset[0], hex[0][1]+offset[1]);
+        glEnd();
+    }
+}
+//------------------------------------------------------------------------------
 void GLWidget::paintGL(){
     // Set up
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Draw the hexagons
     glCallList(hexList);
-    // Draw the piece
-    if(pPiece != NULL){
-        Vecf* pCol = pPiece->getColor();
-        glColor3f((*pCol)[0], (*pCol)[1], (*pCol)[2]);
-        int i,j;
-        Veci2* pHexagons = pPiece->getHexagons();
-        for(int k=0; k<4; k++){
-            glBegin(GL_TRIANGLE_FAN);
-            i = (*pHexagons)[k][0];
-            j = (*pHexagons)[k][1];
-            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
-            for(int l=0; l<6; l++)
-                glVertex2f(hex[l][0], hex[l][1]);
-            glEnd();
-        }
-    }
-    // Draw the preview piece
-    if(pPreviewPiece != NULL){
-        Vecf* pCol = pPreviewPiece->getColor();
-        glColor3f((*pCol)[0], (*pCol)[1], (*pCol)[2]);
-        int i,j;
-        Veci2* pHexagons = pPreviewPiece->getHexagons();
-        for(int k=0; k<4; k++){
-            glBegin(GL_TRIANGLE_FAN);
-            i = (*pHexagons)[k][0];
-            j = (*pHexagons)[k][1];
-            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
-            Vecf v(2);
-            for(int l=0; l<6; l++){
-                v = addf(hex[l], previewOffset);
-                glVertex2f(v[0], v[1]);
-            }
-            glEnd();
-        }
-    }
     // Draw the hexagon grid
     glCallList(hexgridList);
-    // Draw piece border hexagons
-    if(pPiece != NULL){
-        glColor3f(White[0], White[1], White[2]);
-        int i,j;
-        Veci2* hexagons = pPiece->getHexagons();
-        for(int k=0; k<4; k++){
-            glBegin(GL_LINE_STRIP);
-            i = (*hexagons)[k][0];
-            j = (*hexagons)[k][1];
-            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
-            for(int l=0; l<6; l++)
-                glVertex2f(hex[l][0], hex[l][1]);
-            glVertex2f(hex[0][0], hex[0][1]);
-            glEnd();
-        }
-    }
-    // Draw preview piece border hexagons
-    if(pPreviewPiece != NULL){
-        glColor3f(White[0], White[1], White[2]);
-        int i,j;
-        Veci2* hexagons = pPreviewPiece->getHexagons();
-        for(int k=0; k<4; k++){
-            glBegin(GL_LINE_STRIP);
-            i = (*hexagons)[k][0];
-            j = (*hexagons)[k][1];
-            Vecf2 hex = hexVerticesAt(hex2gl(i,j,hex_radius));
-            Vecf v(2);
-            for(int l=0; l<6; l++){
-                v = addf(hex[l], previewOffset);
-                glVertex2f(v[0], v[1]);
-            }
-            v = addf(hex[0], previewOffset);
-            glVertex2f(v[0], v[1]);
-            glEnd();
-        }
-    }
+    // Preview piece
+    if(pPreviewPiece != NULL)
+        drawPiece(pPreviewPiece, previewOffset);
+    // Piece is updated every time
+    if(pPiece != NULL)
+        drawPiece(pPiece);
     // Draw the open gl viewport area
     glColor3f(Grey[0], Grey[1], Grey[2]);
     glBegin(GL_LINE_STRIP);
@@ -250,11 +218,14 @@ void GLWidget::newGame(){
     pPiece = new Piece(type_id, topCenter, pieceColors[type_id]);
     type_id = selectPiece();
     pPreviewPiece = new Piece(type_id, topCenter, pieceColors[type_id]);
+    // Preview piece gets its own display list since it is drawn infrequently
+    if(previewList > 0) glDeleteLists(previewList, 1);
+    previewList = createPreviewPiece();
     repaint();
     score = 0;
     line_count = 0;
     statusMsg(msgLine());
-    timer.staprt((int)speed, this);
+    timer.start((int)speed, this);
     game_time.start();
 }
 //------------------------------------------------------------------------------
@@ -272,7 +243,7 @@ void GLWidget::pauseGame(){
 void GLWidget::keyPressEvent(QKeyEvent *e){
     int key = e->key();
     if(!timer.isActive()) return;
-    // USE ENUMS FOR COLLISION RESULTS!
+// SWITCH
     if(key == Qt::Key_Left){
         coll_check result = pPiece->move_left(hexMap);
         if(result == PIECE_HEAP){
@@ -356,7 +327,8 @@ void GLWidget::timerEvent(QTimerEvent *){
     pPiece = pPreviewPiece;
     int type_id = selectPiece();
     pPreviewPiece = new Piece(type_id, topCenter, pieceColors[type_id]);
-
+    if(previewList > 0) glDeleteLists(previewList, 1);
+    previewList = createPreviewPiece();
     repaint();
     timer.start((int)speed, this);
     // Calculate score & speedup
