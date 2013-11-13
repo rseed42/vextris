@@ -3,6 +3,7 @@
 #include <QMainWindow>
 //------------------------------------------------------------------------------
 class GLWidget;
+#define ICON_FILE "../img/logo.png"
 //------------------------------------------------------------------------------
 // Main Window
 //------------------------------------------------------------------------------
@@ -28,6 +29,7 @@ private:
     QAction* pQuitGame;
     QMenu* pHelpMenu;
     QAction* pAboutGame;
+    QIcon icon;
 };
 
 #endif

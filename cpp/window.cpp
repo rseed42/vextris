@@ -4,7 +4,7 @@
 //------------------------------------------------------------------------------
 // Main Window
 //------------------------------------------------------------------------------
-Window::Window(){
+Window::Window() : icon(ICON_FILE){
     wndSize = new QSize(400,600);
     glWidget = new GLWidget(this);
     glWidget->setMinimumWidth(wndSize->width());
@@ -15,6 +15,7 @@ Window::Window(){
     createActions();
     createMenus();
     createStatusBar();
+    setWindowIcon(icon);
 }
 //------------------------------------------------------------------------------
 void Window::createActions(){
