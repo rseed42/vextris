@@ -22,6 +22,7 @@ AREA_SIZE = np.array([1, FIELD_HEIGHT])
 PREVIEW_WIDTH = 1. - FIELD_WIDTH
 PREVIEW_OFFSET = np.array([0.5*(FIELD_WIDTH + PREVIEW_WIDTH),
                            -0.25*FIELD_HEIGHT])
+ICON_FILE = '../img/logo.png'
 #-------------------------------------------------------------------------------
 # General Colors
 BLACK = np.zeros(3)
@@ -480,6 +481,8 @@ class Window(QtGui.QMainWindow):
         self.setCentralWidget(self.glWidget)
         self.glWidget.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setWindowTitle("VexTris")
+        self.icon = QtGui.QIcon(ICON_FILE)
+        self.setWindowIcon(self.icon)
         # Status bar
         self.status_bar = self.statusBar()
         self.status_bar.showMessage('VexTris')
