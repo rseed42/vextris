@@ -36,7 +36,7 @@ nosetests.xml
 .pydevproject
 
 # More ignores
-Makefile
+#Makefile
 *.o
 moc_*
 vextris
