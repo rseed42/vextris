@@ -11,7 +11,7 @@ Window::Window() : icon(ICON_FILE){
     glWidget->setMinimumHeight(wndSize->height());
     setCentralWidget(glWidget);
     glWidget->setFocusPolicy(Qt::StrongFocus);
-    setWindowTitle(tr("OpenGL Qt4 C++ Template"));
+    setWindowTitle(tr("VexTris"));
     createActions();
     createMenus();
     createStatusBar();
